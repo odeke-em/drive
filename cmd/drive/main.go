@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 
@@ -211,7 +212,23 @@ func (cmd *publishCmd) Run(args []string) {
 
 func initContext(args []string) *config.Context {
 	var err error
-	context, err = config.Initialize(getContextPath(args))
+	var gdPath string
+	var firstInit bool
+
+	gdPath, firstInit, context, err = config.Initialize(getContextPath(args))
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+
+	// The signal handler should clean up the .gd path if this is the first time
+	go func() {
+		_ = <-c
+		if firstInit {
+			os.RemoveAll(gdPath)
+		}
+		os.Exit(1)
+	}()
+
 	exitWithError(err)
 	return context
 }

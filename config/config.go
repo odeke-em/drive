@@ -17,6 +17,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -97,9 +98,21 @@ func Discover(currentAbsPath string) (context *Context, err error) {
 	return
 }
 
-func Initialize(absPath string) (c *Context, err error) {
-	p := gdPath(absPath)
-	if err = os.MkdirAll(p, 0755); err != nil {
+func Initialize(absPath string) (pathGD string, firstInit bool, c *Context, err error) {
+	pathGD = gdPath(absPath)
+	sInfo, sErr := os.Stat(pathGD)
+	if sErr != nil {
+		if os.IsNotExist(sErr) {
+			firstInit = true
+		} else if !os.IsExist(sErr) { // An err not related to path existance
+			return
+		}
+	}
+	if sInfo != nil && !sInfo.IsDir() {
+		err = fmt.Errorf("%s is not a directory", pathGD)
+		return
+	}
+	if err = os.MkdirAll(pathGD, 0755); err != nil {
 		return
 	}
 	c = &Context{AbsPath: absPath}

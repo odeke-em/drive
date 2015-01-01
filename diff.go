@@ -37,11 +37,11 @@ func (g *Commands) Diff() (err error) {
 		return
 	}
 
-    var diffUtilPath string
-    diffUtilPath, err = exec.LookPath("diff")
-    if err != nil {
-        return
-    }
+	var diffUtilPath string
+	diffUtilPath, err = exec.LookPath("diff")
+	if err != nil {
+		return
+	}
 
 	for _, c := range cl {
 		dErr := g.perDiff(c, diffUtilPath, ".")
@@ -53,14 +53,14 @@ func (g *Commands) Diff() (err error) {
 }
 
 func sysHasDiff() bool {
-    _, err := exec.LookPath("diff")
-    return err == nil
+	_, err := exec.LookPath("diff")
+	return err == nil
 }
 
 func (g *Commands) perDiff(change *Change, diffProgPath, cwd string) (err error) {
-    defer func() {
-        fmt.Println(Ruler)
-    }()
+	defer func() {
+		fmt.Println(Ruler)
+	}()
 
 	l, r := change.Src, change.Dest
 	if l == nil && r == nil {
@@ -138,18 +138,18 @@ func (g *Commands) perDiff(change *Change, diffProgPath, cwd string) (err error)
 		return
 	}
 
-    fmt.Printf("%s\n%s %s\n", Ruler, l.Name, r.Name)
+	fmt.Printf("%s\n%s %s\n", Ruler, l.Name, r.Name)
 
-    diffCmd := exec.Cmd {
-        Args: []string{ diffProgPath, l.BlobAt, frTmp.Name() },
-        Dir: cwd,
-        Path: diffProgPath,
-        Stdin: nil,
-        Stdout: os.Stdout,
-        Stderr: os.Stderr,
-    }
+	diffCmd := exec.Cmd{
+		Args:   []string{diffProgPath, l.BlobAt, frTmp.Name()},
+		Dir:    cwd,
+		Path:   diffProgPath,
+		Stdin:  nil,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+	}
 
-    // Normally when elements differ diff returns a non-zero code
-    _ = diffCmd.Run()
+	// Normally when elements differ diff returns a non-zero code
+	_ = diffCmd.Run()
 	return
 }
