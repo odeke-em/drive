@@ -16,11 +16,10 @@ package drive
 
 import (
 	"fmt"
-	"path/filepath"
-	"time"
-
 	drive "github.com/odeke-em/google-api-go-client/drive/v2"
 	"github.com/odeke-em/log"
+	"path/filepath"
+	"strings"
 )
 
 type keyValue struct {
@@ -44,7 +43,19 @@ func (g *Commands) statfn(fname string, fn func(string) (*File, error)) error {
 			continue
 		}
 
+		if g.opts.Md5sum {
+
+			src = f.Name // forces filename if -id is used
+
+			// md5sum with no arguments should do md5sum *
+			if f.IsDir && rootLike(g.opts.Path) {
+				src = ""
+			}
+
+		}
+
 		err = g.stat(src, f, g.opts.Depth)
+
 		if err != nil {
 			g.log.LogErrf("%s: %s err: %v\n", fname, src, err)
 			continue
@@ -116,35 +127,42 @@ func prettyFileStat(logf log.Loggerf, relToRootPath string, file *File) {
 }
 
 func (g *Commands) stat(relToRootPath string, file *File, depth int) error {
-	if depth == 0 {
-		return nil
+
+	if !g.opts.Md5sum {
+		prettyFileStat(g.log.Logf, relToRootPath, file)
+		perms, permErr := g.rem.listPermissions(file.Id)
+		if permErr != nil {
+			return permErr
+		}
+
+		for _, perm := range perms {
+			prettyPermission(g.log.Logf, perm)
+		}
+	} else if file.Md5Checksum != "" {
+		g.log.Logf("%32s  %s\n", file.Md5Checksum, strings.TrimPrefix(relToRootPath, "/"))
 	}
 
-	if depth >= 1 {
-		depth -= 1
-	}
+	if file.IsDir && depth != 0 {
+		if depth >= 1 {
+			depth -= 1
+		}
 
-	// Arbitrary value for throttle pause duration
-	throttle := time.Tick(1e9 / 5)
+		var remoteChildren []*File
 
-	prettyFileStat(g.log.Logf, relToRootPath, file)
-	perms, permErr := g.rem.listPermissions(file.Id)
-	if permErr != nil {
-		return permErr
-	}
+		for child := range g.rem.FindByParentId(file.Id, g.opts.Hidden) {
+			remoteChildren = append(remoteChildren, child)
+		}
 
-	for _, perm := range perms {
-		prettyPermission(g.log.Logf, perm)
-	}
+		if g.opts.Md5sum {
+			// TODO use g.sort instead of sort.stable
+			// i.e g.sort(remoteChildren,"name")
+			// The reason this is not done here is because g.sort does not sort in natural order
+			g.sort(remoteChildren, Md5Key, NameKey)
+		}
 
-	if !file.IsDir {
-		return nil
-	}
-
-	remoteChildren := g.rem.FindByParentId(file.Id, g.opts.Hidden)
-	for child := range remoteChildren {
-		g.stat(filepath.Clean(relToRootPath+"/"+child.Name), child, depth)
-		<-throttle
+		for _, child := range remoteChildren {
+			g.stat(filepath.Clean(relToRootPath+"/"+child.Name), child, depth)
+		}
 	}
 
 	return nil
