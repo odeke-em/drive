@@ -68,6 +68,7 @@ func main() {
 	bindCommandWithAliases(drive.QuotaKey, drive.DescQuota, &quotaCmd{}, []string{})
 	bindCommandWithAliases(drive.ShareKey, drive.DescShare, &shareCmd{}, []string{})
 	bindCommandWithAliases(drive.StatKey, drive.DescStat, &statCmd{}, []string{})
+	bindCommandWithAliases(drive.Md5sumKey, drive.DescMd5sum, &statCmd{}, []string{})
 	bindCommandWithAliases(drive.UnshareKey, drive.DescUnshare, &unshareCmd{}, []string{})
 	bindCommandWithAliases(drive.TouchKey, drive.DescTouch, &touchCmd{}, []string{})
 	bindCommandWithAliases(drive.TrashKey, drive.DescTrash, &trashCmd{}, []string{})
@@ -245,6 +246,7 @@ type statCmd struct {
 	hidden    *bool
 	recursive *bool
 	quiet     *bool
+	md5sum    *bool
 }
 
 func (cmd *statCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
@@ -253,6 +255,7 @@ func (cmd *statCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
 	cmd.recursive = fs.Bool("r", false, "recursively discover folders")
 	cmd.quiet = fs.Bool(drive.QuietKey, false, "if set, do not log anything but errors")
 	cmd.byId = fs.Bool(drive.CLIOptionId, false, "stat by id instead of path")
+	cmd.md5sum = fs.Bool(drive.Md5sumKey, false, "produce output compatible with md5sum(1)")
 	return fs
 }
 
@@ -271,6 +274,11 @@ func (cmd *statCmd) Run(args []string) {
 		Sources:   sources,
 		Quiet:     *cmd.quiet,
 		Depth:     depth,
+		Md5sum:    *cmd.md5sum,
+	}
+
+	if flag.Arg(0) == drive.Md5sumKey {
+		opts.Md5sum = true
 	}
 
 	if *cmd.byId {

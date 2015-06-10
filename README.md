@@ -22,12 +22,13 @@
   - [Unpublishing](#unpublishing)
   - [Sharing and Emailing](#sharing-and-emailing)
   - [Unsharing](#unsharing)
-  - [Touching](#touch)
+  - [Touching](#touching)
   - [Trashing and Untrashing](#trashing-and-untrashing)
   - [Emptying the Trash](#emptying-the-trash)
   - [Deleting](#deleting)
   - [Listing Files](#listing-files)
   - [Stating Files](#stating-files)
+  - [Retrieving md5 checksums](#retrieving-md5-checksums)
   - [Quota](#quota)
   - [Features](#features)
   - [About](#about)
@@ -507,6 +508,35 @@ OR
 $ drive stat -depth 4 --id 0fM9rt0Yc9RTPeHRfRHRRU0dIY97 0fM9rt0Yc9kJRPSTFNk9kSTVvb0U
 ```
 
+### Retrieving md5 Checksums
+
+The `md5sum` command quickly retrieves the md5 checksums of the files on your drive. The result can be fed into the "md5sum -c" shell command to validate the integrity of the files on Drive versus the local copies.
+
+Check that files on Drive are present and match local files:
+
+```shell
+~/MyDrive/folder$ drive md5sum | md5sum -c
+```
+
+Do a two-way diff (will also locate files missing on either side)
+
+```shell
+~/MyDrive/folder$ diff <(drive md5sum) <(md5sum *)
+```
+
+Same as above, but include subfolders 
+
+```shell
+~/MyDrive/folder$ diff <(drive md5sum -r) <(find * -type f | sort | xargs md5sum)
+```
+
+Compare across two different Drive accounts, including subfolders
+
+```shell
+~$ diff <(drive md5sum -r MyDrive/folder) <(drive md5sum -r OtherDrive/otherfolder)
+```
+
+_Note: Running the 'drive md5sum' command retrieves pre-computed md5 sums from Drive; its speed is proportional to the number of files on Drive. Running the shell 'md5sum' command on local files requires reading through the files; its speed is proportional to the size of the files._
 
 ### Quota
 

@@ -19,7 +19,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"sort"
+	"strings"
+
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
+
 	drive "github.com/odeke-em/google-api-go-client/drive/v2"
+
 	"github.com/odeke-em/log"
 )
 
@@ -44,7 +51,24 @@ func (g *Commands) statfn(fname string, fn func(string) (*File, error)) error {
 			continue
 		}
 
-		err = g.stat(src, f, g.opts.Depth)
+		if g.opts.Md5sum {
+
+			depth := g.opts.Depth
+			src = f.Name // forces filename if -id is used
+
+			// md5sum with no arguments should do md5sum *
+			if f.IsDir && g.opts.Path == "/" {
+				src = ""
+				if depth == 1 {
+					depth = 2
+				}
+			}
+
+			err = g.stat(src, f, depth)
+		} else {
+			err = g.stat(src, f, g.opts.Depth)
+		}
+
 		if err != nil {
 			g.log.LogErrf("%s: %s err: %v\n", fname, src, err)
 			continue
@@ -116,6 +140,7 @@ func prettyFileStat(logf log.Loggerf, relToRootPath string, file *File) {
 }
 
 func (g *Commands) stat(relToRootPath string, file *File, depth int) error {
+
 	if depth == 0 {
 		return nil
 	}
@@ -125,27 +150,79 @@ func (g *Commands) stat(relToRootPath string, file *File, depth int) error {
 	}
 
 	// Arbitrary value for throttle pause duration
+	// TODO Is this really needed now that everything is serialized?
+
 	throttle := time.Tick(1e9 / 5)
 
-	prettyFileStat(g.log.Logf, relToRootPath, file)
-	perms, permErr := g.rem.listPermissions(file.Id)
-	if permErr != nil {
-		return permErr
+	if !g.opts.Md5sum {
+		prettyFileStat(g.log.Logf, relToRootPath, file)
+		perms, permErr := g.rem.listPermissions(file.Id)
+		if permErr != nil {
+			return permErr
+		}
+
+		for _, perm := range perms {
+			prettyPermission(g.log.Logf, perm)
+		}
+	} else if file.Md5Checksum != "" {
+		g.log.Logf("%32s  %s\n", file.Md5Checksum, strings.TrimPrefix(relToRootPath, "/"))
 	}
 
-	for _, perm := range perms {
-		prettyPermission(g.log.Logf, perm)
-	}
+	if file.IsDir {
+		//remoteChildren := FileArray{}
+		var remoteChildren FileArray
 
-	if !file.IsDir {
-		return nil
-	}
+		for child := range g.rem.FindByParentId(file.Id, g.opts.Hidden) {
+			remoteChildren = append(remoteChildren, child)
+			<-throttle
+		}
 
-	remoteChildren := g.rem.FindByParentId(file.Id, g.opts.Hidden)
-	for child := range remoteChildren {
-		g.stat(filepath.Clean(relToRootPath+"/"+child.Name), child, depth)
-		<-throttle
+		if g.opts.Md5sum {
+			// TODO use g.sort instead of sort.stable
+			// i.e g.sort(remoteChildren,"name")
+			// The reason this is not done here is because g.sort does not sort in natural order
+			
+			sort.Stable(remoteChildren)
+		}
+
+		for _, child := range remoteChildren {
+			g.stat(filepath.Clean(relToRootPath+"/"+child.Name), child, depth)
+		}
 	}
 
 	return nil
+}
+
+// FileArray sorts by File.Name
+
+type FileArray []*File
+
+func (this FileArray) Len() int {
+	return len(this)
+}
+
+// TODO get collation order from system's locale
+// language.Und seems to work well for common western locales
+
+var collator *collate.Collator = collate.New(language.Und)
+
+func (this FileArray) Less(i, j int) bool {
+
+	cmp := collator.CompareString(this[i].Name, this[j].Name)
+
+	// This should ensure stable results when two files have the same name, I think
+
+	if cmp == 0 {
+		if this[i].Id < this[j].Id {
+			cmp = -1
+		} else {
+			cmp = +1
+		}
+	}
+
+	return cmp < 0
+}
+
+func (this FileArray) Swap(i, j int) {
+	this[i], this[j] = this[j], this[i]
 }
