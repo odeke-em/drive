@@ -55,6 +55,26 @@
 			"Rev": "ec6d5d770f531108a6464462b2201b74fcd09314"
 		},
 		{
+			"ImportPath": "golang.org/x/text/collate",
+			"Rev": "df923bbb63f8ea3a26bb743e2a497abd0ab585f7"
+		},
+		{
+			"ImportPath": "golang.org/x/text/internal/colltab",
+			"Rev": "df923bbb63f8ea3a26bb743e2a497abd0ab585f7"
+		},
+		{
+			"ImportPath": "golang.org/x/text/language",
+			"Rev": "df923bbb63f8ea3a26bb743e2a497abd0ab585f7"
+		},
+		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Rev": "df923bbb63f8ea3a26bb743e2a497abd0ab585f7"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
+			"Rev": "df923bbb63f8ea3a26bb743e2a497abd0ab585f7"
+		},
+		{
 			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
 			"Rev": "caddaef3288600132bb9c9ea3f638e565d74cd54"
 		},

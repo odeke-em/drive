@@ -45,6 +45,7 @@ const (
 	UntrashKey    = "untrash"
 	UnpubKey      = "unpub"
 	VersionKey    = "version"
+	Md5sumKey     = "md5sum"
 
 	CoercedMimeKeyKey     = "coerced-mime"
 	DepthKey              = "depth"
@@ -94,6 +95,7 @@ const (
 	DescUntrash        = "restores files from trash to their original locations"
 	DescUnpublish      = "revokes public access to a file"
 	DescVersion        = "prints the version"
+	DescMd5sum         = "prints a list compatible with md5sum(1)"
 	DescAccountTypes   = "\n\t* anyone.\n\t* user.\n\t* domain.\n\t* group"
 	DescRoles          = "\n\t* owner.\n\t* reader.\n\t* writer.\n\t* commenter."
 	DescIgnoreChecksum = "avoids computation of checksums as a final check." +
