@@ -234,9 +234,7 @@ func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounte
 
 	// TODO: Only provide precedence ordering if all the other options are allowed
 	// Currently noop on sorting by precedence
-	if false && !g.opts.NoClobber {
-		sort.Sort(ByPrecedence(cl))
-	}
+	sort.Sort(ByPrecedence(cl))
 
 	go func() {
 		for n := range g.rem.progressChan {
@@ -250,15 +248,10 @@ func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounte
 			g.remoteMod(c)
 		case OpModConflict:
 			g.remoteMod(c)
-		case OpDelete:
-			g.remoteTrash(c)
-		}
-	}
-
-	for _, c := range cl {
-		switch c.Op() {
 		case OpAdd:
 			g.remoteAdd(c)
+		case OpDelete:
+			g.remoteTrash(c)
 		}
 	}
 
