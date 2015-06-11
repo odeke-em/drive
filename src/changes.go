@@ -354,7 +354,7 @@ func merge(remotes, locals chan *File, ignoreClashes bool) (merged []*dirList, c
 		// look for local
 		if ok {
 			l, lOk := mem.(*File)
-			if lOk {
+			if lOk && (l.IsDir == r.IsDir) {
 				list.local = l
 				localsTrie.Pop(r.Name)
 			}
