@@ -67,9 +67,9 @@ var BigFileSize = int64(1024 * 1024 * 400)
 var opPrecedence = map[Operation]int{
 	OpNone:        0,
 	OpDelete:      1,
-	OpAdd:         2,
-	OpMod:         3,
-	OpModConflict: 4,
+	OpMod:         2,
+	OpModConflict: 3,
+	OpAdd:         4,
 }
 
 type File struct {

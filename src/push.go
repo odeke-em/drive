@@ -234,9 +234,7 @@ func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounte
 
 	// TODO: Only provide precedence ordering if all the other options are allowed
 	// Currently noop on sorting by precedence
-	if false && !g.opts.NoClobber {
-		sort.Sort(ByPrecedence(cl))
-	}
+	sort.Sort(ByPrecedence(cl))
 
 	go func() {
 		for n := range g.rem.progressChan {

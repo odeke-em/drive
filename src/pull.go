@@ -231,10 +231,8 @@ func (g *Commands) playPullChanges(cl []*Change, exports []string, opMap *map[Op
 	defer close(g.rem.progressChan)
 
 	// TODO: Only provide precedence ordering if all the other options are allowed
-	// Currently noop on sorting by precedence
-	if false && !g.opts.NoClobber {
-		sort.Sort(ByPrecedence(cl))
-	}
+
+	sort.Sort(ByPrecedence(cl))
 
 	go func() {
 		for n := range g.rem.progressChan {
@@ -253,8 +251,10 @@ func (g *Commands) playPullChanges(cl []*Change, exports []string, opMap *map[Op
 		}
 		var wg sync.WaitGroup
 		wg.Add(len(next))
+
 		// play the changes
 		// TODO: add timeouts
+
 		for _, c := range next {
 			switch c.Op() {
 			case OpMod:
@@ -267,7 +267,9 @@ func (g *Commands) playPullChanges(cl []*Change, exports []string, opMap *map[Op
 				go g.localDelete(&wg, c)
 			}
 		}
+
 		wg.Wait()
+
 	}
 
 	g.taskFinish()
