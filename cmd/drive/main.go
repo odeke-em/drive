@@ -68,7 +68,7 @@ func main() {
 	bindCommandWithAliases(drive.QuotaKey, drive.DescQuota, &quotaCmd{}, []string{})
 	bindCommandWithAliases(drive.ShareKey, drive.DescShare, &shareCmd{}, []string{})
 	bindCommandWithAliases(drive.StatKey, drive.DescStat, &statCmd{}, []string{})
-	bindCommandWithAliases(drive.Md5sumKey, drive.DescMd5sum, &statCmd{}, []string{})
+	bindCommandWithAliases(drive.Md5sumKey, drive.DescMd5sum, &md5SumCmd{}, []string{})
 	bindCommandWithAliases(drive.UnshareKey, drive.DescUnshare, &unshareCmd{}, []string{})
 	bindCommandWithAliases(drive.TouchKey, drive.DescTouch, &touchCmd{}, []string{})
 	bindCommandWithAliases(drive.TrashKey, drive.DescTrash, &trashCmd{}, []string{})
@@ -240,6 +240,48 @@ func (cmd *listCmd) Run(args []string) {
 	}
 }
 
+type md5SumCmd struct {
+	byId      *bool
+	depth     *int
+	hidden    *bool
+	recursive *bool
+	quiet     *bool
+}
+
+func (cmd *md5SumCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
+	cmd.depth = fs.Int(drive.DepthKey, 1, "maximum recursion depth")
+	cmd.hidden = fs.Bool(drive.HiddenKey, false, "discover hidden paths")
+	cmd.recursive = fs.Bool("r", false, "recursively discover folders")
+	cmd.quiet = fs.Bool(drive.QuietKey, false, "if set, do not log anything but errors")
+	cmd.byId = fs.Bool(drive.CLIOptionId, false, "stat by id instead of path")
+	return fs
+}
+
+func (cmd *md5SumCmd) Run(args []string) {
+	sources, context, path := preprocessArgsByToggle(args, *cmd.byId)
+	
+	depth := *cmd.depth
+	if *cmd.recursive {
+		depth = drive.InfiniteDepth
+	}
+
+	opts := drive.Options{
+		Hidden:    *cmd.hidden,
+		Path:      path,
+		Recursive: *cmd.recursive,
+		Sources:   sources,
+		Quiet:     *cmd.quiet,
+		Depth:     depth,
+		Md5sum:    true,		
+	}
+
+	if *cmd.byId {
+		exitWithError(drive.New(context, &opts).StatById())
+	} else {
+		exitWithError(drive.New(context, &opts).Stat())
+	}
+}
+
 type statCmd struct {
 	byId      *bool
 	depth     *int
@@ -275,10 +317,6 @@ func (cmd *statCmd) Run(args []string) {
 		Quiet:     *cmd.quiet,
 		Depth:     depth,
 		Md5sum:    *cmd.md5sum,
-	}
-
-	if flag.Arg(0) == drive.Md5sumKey {
-		opts.Md5sum = true
 	}
 
 	if *cmd.byId {
