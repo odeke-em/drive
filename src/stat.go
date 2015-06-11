@@ -157,7 +157,7 @@ func (g *Commands) stat(relToRootPath string, file *File, depth int) error {
 			// TODO use g.sort instead of sort.stable
 			// i.e g.sort(remoteChildren,"name")
 			// The reason this is not done here is because g.sort does not sort in natural order
-			g.sort(remoteChildren,NameKey)
+			g.sort(remoteChildren,Md5Key,NameKey)
 		}
 
 		for _, child := range remoteChildren {
