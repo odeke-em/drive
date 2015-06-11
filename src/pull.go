@@ -252,22 +252,35 @@ func (g *Commands) playPullChanges(cl []*Change, exports []string, opMap *map[Op
 			break
 		}
 		var wg sync.WaitGroup
-		wg.Add(len(next))
+
 		// play the changes
 		// TODO: add timeouts
+
+		// Defer adds until after the deletes
 		for _, c := range next {
 			switch c.Op() {
 			case OpMod:
+				wg.Add(1)
 				go g.localMod(&wg, c, exports)
 			case OpModConflict:
+				wg.Add(1)
 				go g.localMod(&wg, c, exports)
-			case OpAdd:
-				go g.localAdd(&wg, c, exports)
 			case OpDelete:
+				wg.Add(1)
 				go g.localDelete(&wg, c)
 			}
 		}
 		wg.Wait()
+
+		for _, c := range next {
+			switch c.Op() {
+			case OpAdd:
+				wg.Add(1)
+				go g.localAdd(&wg, c, exports)
+			}
+		}
+		wg.Wait()
+
 	}
 
 	g.taskFinish()

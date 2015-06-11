@@ -250,10 +250,15 @@ func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounte
 			g.remoteMod(c)
 		case OpModConflict:
 			g.remoteMod(c)
-		case OpAdd:
-			g.remoteAdd(c)
 		case OpDelete:
 			g.remoteTrash(c)
+		}
+	}
+
+	for _, c := range cl {
+		switch c.Op() {
+		case OpAdd:
+			g.remoteAdd(c)
 		}
 	}
 
