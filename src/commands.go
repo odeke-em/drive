@@ -82,7 +82,6 @@ type Options struct {
 	IgnoreNameClashes bool
 	ExcludeCrudMask   CrudValue
 	Md5sum            bool
-	
 }
 
 type Commands struct {

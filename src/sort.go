@@ -15,10 +15,10 @@
 package drive
 
 import (
-	"sort"
-	"strings"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
+	"sort"
+	"strings"
 )
 
 const (

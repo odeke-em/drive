@@ -16,10 +16,10 @@ package drive
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 	drive "github.com/odeke-em/google-api-go-client/drive/v2"
 	"github.com/odeke-em/log"
+	"path/filepath"
+	"strings"
 )
 
 type keyValue struct {
@@ -53,7 +53,7 @@ func (g *Commands) statfn(fname string, fn func(string) (*File, error)) error {
 			}
 
 		}
-			
+
 		err = g.stat(src, f, g.opts.Depth)
 
 		if err != nil {
@@ -142,11 +142,11 @@ func (g *Commands) stat(relToRootPath string, file *File, depth int) error {
 		g.log.Logf("%32s  %s\n", file.Md5Checksum, strings.TrimPrefix(relToRootPath, "/"))
 	}
 
-	if file.IsDir && depth !=0 {
+	if file.IsDir && depth != 0 {
 		if depth >= 1 {
 			depth -= 1
 		}
-		
+
 		var remoteChildren []*File
 
 		for child := range g.rem.FindByParentId(file.Id, g.opts.Hidden) {
@@ -157,7 +157,7 @@ func (g *Commands) stat(relToRootPath string, file *File, depth int) error {
 			// TODO use g.sort instead of sort.stable
 			// i.e g.sort(remoteChildren,"name")
 			// The reason this is not done here is because g.sort does not sort in natural order
-			g.sort(remoteChildren,Md5Key,NameKey)
+			g.sort(remoteChildren, Md5Key, NameKey)
 		}
 
 		for _, child := range remoteChildren {
@@ -167,4 +167,3 @@ func (g *Commands) stat(relToRootPath string, file *File, depth int) error {
 
 	return nil
 }
-
