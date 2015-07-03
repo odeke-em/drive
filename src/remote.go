@@ -649,7 +649,9 @@ func (r *Remote) findByPathRecvRaw(parentId string, p []string, trashed bool) (f
 	// TODO: use field selectors
 	var expr string
 	head := urlToPath(p[0], false)
-	quote := strconv.Quote
+	quote := func(s string) string {
+		return "\"" + strings.Replace(strings.Replace(s, "\\", "\\\\", -1), "\"", "\\\"", -1) + "\""
+	}
 	if trashed {
 		expr = fmt.Sprintf("title = %s and trashed=true", quote(head))
 	} else {
