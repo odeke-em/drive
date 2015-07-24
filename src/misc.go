@@ -18,8 +18,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	filePath "path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -34,12 +36,54 @@ const (
 	FmtTimeString = "2006-01-02T15:04:05.000Z"
 )
 
+var (
+	DefaultMaxProcs           = 4
+	MaxFailedRetryCount       = uint32(20)                           // Arbitrary value
+	ThrottledRequestsDuration = time.Duration(1e9 / DefaultMaxProcs) // Arbitrary value
+)
+
 var BytesPerKB = float64(1024)
+
+var (
+	MsgInternalServerError = "googleapi: Error 500: Internal Error, internalError"
+	MsgUserLimitExceeded   = "googleapi: Error 403: User rate limit exceeded, userRateLimitExceeded"
+)
 
 type desktopEntry struct {
 	name string
 	url  string
 	icon string
+}
+
+type tuple struct {
+	first  interface{}
+	second interface{}
+	last   interface{}
+}
+
+func retryableErrorCheck(v interface{}) (ok, retryable bool) {
+	pr, pOk := v.(*tuple)
+	if pr == nil || !pOk {
+		return false, true
+	}
+
+	err, ok := pr.first.(error)
+	if !ok || err == nil {
+		return true, false
+	}
+
+	if false { // For now noop for specific errors, just treat each error as retryable
+		switch err.Error() {
+		case MsgUserLimitExceeded:
+			return false, true
+		case MsgInternalServerError:
+			return false, true
+		default:
+			return false, false
+		}
+	}
+
+	return false, true
 }
 
 type playable struct {
@@ -288,6 +332,47 @@ func commonPrefix(values ...string) string {
 	return string(prefix)
 }
 
+func commonPrefixSplit(splitter string, values ...string) string {
+	if len(values) < 1 {
+		return ""
+	}
+
+	splits := [][]string{}
+	spl := strings.Split(values[0], splitter)
+	minLen := len(spl)
+
+	for _, it := range values {
+		spl := strings.Split(it, splitter)
+		curLen := len(spl)
+		if curLen < minLen {
+			minLen = curLen
+		}
+		splits = append(splits, spl)
+	}
+
+	joined := []string{splitter}
+	done := false
+
+	for i := 0; i < minLen; i += 1 {
+		head := splits[0][i]
+
+		for _, indv := range splits {
+			if indv[i] != head {
+				done = true
+				break
+			}
+		}
+
+		if done {
+			break
+		}
+
+		joined = append(joined, head)
+	}
+
+	return filePath.Clean(sepJoinNonEmpty(splitter, joined...))
+}
+
 func readCommentedFile(p, comment string) (clauses []string, err error) {
 	f, fErr := os.Open(p)
 	if fErr != nil || f == nil {
@@ -437,6 +522,14 @@ func cacher(regMap map[*regexp.Regexp]string) func(string) string {
 		cache[ext] = memoized
 		return memoized
 	}
+}
+
+func maxProcs() int {
+	maxProcs, err := strconv.ParseInt(os.Getenv("GOMAXPROCS"), 10, 0)
+	if err != nil || maxProcs < 1 {
+		return DefaultMaxProcs
+	}
+	return int(maxProcs)
 }
 
 func anyMatch(pat *regexp.Regexp, args ...string) bool {

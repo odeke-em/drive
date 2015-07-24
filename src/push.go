@@ -27,6 +27,9 @@ import (
 	"time"
 
 	"github.com/odeke-em/drive/config"
+
+	expb "github.com/odeke-em/exponential-backoff"
+	rationer "github.com/odeke-em/rationer"
 )
 
 // Pushes to remote if local path exists and in a gd context. If path is a
@@ -235,6 +238,22 @@ func (g *Commands) deserializeIndex(identifier string) *config.Index {
 	return index
 }
 
+func (g *Commands) remoteLevelNoop(p string) error {
+	return nil
+}
+
+func (g *Commands) remoteLevelMkdirAll(p string) error {
+	f := func() (interface{}, error) {
+		parent, err := g.remoteMkdirAll(p)
+		return &tuple{first: parent, second: false, last: err}, err
+	}
+
+	retrier := retryableChangeOp(f)
+	_, err := expb.ExponentialBackOffSync(retrier)
+
+	return err
+}
+
 func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounter) (err error) {
 
 	if opMap == nil {
@@ -262,22 +281,43 @@ func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounte
 		}
 	}()
 
-	for _, c := range cl {
-		switch c.Op() {
-		case OpMod:
-			g.remoteMod(c)
-		case OpModConflict:
-			g.remoteMod(c)
-		case OpAdd:
-			g.remoteAdd(c)
-		case OpDelete:
-			g.remoteTrash(c)
-		}
-	}
+	g.mapChanges(cl)
 
-	// Time to organize them according branching
 	g.taskFinish()
 	return err
+}
+
+func changeJobber(fn func(*Change) error, ch *Change) rationer.Job {
+	return func() interface{} {
+		return fn(ch)
+	}
+}
+
+func (g *Commands) mapChanges(cl []*Change) {
+	ration := rationer.NewRationer(10)
+	loader := ration.Run()
+
+	for _, ch := range cl {
+		f := g.remoteAdd
+		switch ch.Op() {
+		case OpDelete:
+			f = g.remoteDelete
+		case OpModConflict:
+			f = g.remoteMod
+		case OpMod:
+			f = g.remoteMod
+		}
+
+		loader <- changeJobber(f, ch)
+	}
+
+	go func(res chan interface{}) {
+		for _ = range res { // Drain it
+		}
+	}(ration.Results())
+
+	loader <- rationer.Sentinel
+	ration.Wait()
 }
 
 func lonePush(g *Commands, parent, absPath, path string) (cl, clashes []*Change, err error) {
@@ -355,7 +395,7 @@ func (g *Commands) remoteMod(change *Change) (err error) {
 
 	rem, err := g.rem.UpsertByComparison(&args)
 	if err != nil {
-		g.log.LogErrf("%s: %v\n", change.Path, err)
+		// g.log.LogErrf("%s: %v\n", change.Path, err)
 		return
 	}
 	if rem == nil {
@@ -461,6 +501,7 @@ func (g *Commands) remoteMkdirAll(d string) (file *File, err error) {
 		parentId: parent.Id,
 		src:      remoteFile,
 	}
+
 	parent, parentErr = g.rem.UpsertByComparison(&args)
 	if parentErr != nil {
 		return parent, parentErr
