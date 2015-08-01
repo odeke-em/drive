@@ -20,11 +20,26 @@ $ sudo apt-get update
 $ sudo apt-get install drive
 ```
 
+### openSUSE distro. (may also work with fedora, CentOS, Red Hat)
+```sh
+# install needed software tools
+sudo yum install go mercurial git hg-git
+$ mkdir $HOME/go
+$ export GOPATH=$HOME/go
+# For convenience, add the workspace's bin subdirectory to your PATH:
+$ export PATH=$PATH:$GOPATH/bin
 
+# get and compile the drive program
+$ go get github.com/odeke-em/drive/cmd/drive
+
+# run drive with this command:
+$ $GOPATH/bin/drive
+```
 ### Packages Provided By
 
 Platform | Author |
 ---------| -------|
 [Arch Linux](https://aur.archlinux.org/packages/drive) | [Jonathan Jenkins](https://github.com/shaggytwodope)
 [Ubuntu Linux](https://launchpad.net/~twodopeshaggy/+archive/ubuntu/drive) | [Jonathan Jenkins](https://github.com/shaggytwodope)
+[openSUSE Linux]() | [Grant Rostig](https://github.com/grantrostig)
 

@@ -1,0 +1,15 @@
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="44mm" width="44mm" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="0 0 155.90551 155.9055">
+ <defs>
+  <clipPath id="clipPath4233" clipPathUnits="userSpaceOnUse">
+   <rect style="color:#000000" height="140" width="110" y="409.66" x="184.48" fill="#2368dc"/>
+  </clipPath>
+ </defs>
+ <g transform="translate(-161.45 -397.65)">
+  <g transform="translate(-.078742 .15051)">
+   <rect style="color:#000000" height="140" width="110" y="409.66" x="184.48" fill="#09e157"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" line-height="125%" font-size="25px" y="520.12213" x="239.5778" font-family="Cabin" xml:space="preserve" fill="#ffffff"><tspan y="520.12213" x="239.5778">gform</tspan></text>
+   <path d="m273.21 407.36 22.706 23.015" clip-path="url(#clipPath4233)" stroke="#e06bbb" stroke-width="1.5" fill="none"/>
+   <path d="m202.65 409.61v-2.6446c-0.0369-2.9794 2.0107-4.7122 4.731-4.714l8.6104-0.006c2.17-0.001 4.9504 1.7128 4.9566 4.8492 0.006 2.8589-0.0455 23.208-0.1916 36.466-0.0338 3.0675-1.7918 4.59-4.4041 4.59h-5.6332c-2.267 0-4.5484-1.8717-4.59-4.3814-0.045-2.7119 0.20863-29.209 0.20863-29.209" stroke="#e06bbb" stroke-width="2" fill="none"/>
+  </g>
+ </g>
+</svg>

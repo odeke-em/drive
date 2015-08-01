@@ -1,0 +1,91 @@
+{
+	"ImportPath": "github.com/odeke-em/drive/drive-gen",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.0-113-g980670a",
+			"Rev": "980670afcebfd86727505b3061d8667195234816"
+		},
+		{
+			"ImportPath": "github.com/cheggaaa/pb",
+			"Rev": "e3e099c334cd89a6fe993f0683eaafd85604290f"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Rev": "ae0b1f8f8004be68d791a576e3d8e7648ab41449"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/cli-spinner",
+			"Rev": "610063bb4aeef25f7645b3e6080456655ec0fb33"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/command",
+			"Rev": "e193fa4a028b950e8fa1c584458ecc1991d50b52"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/google-api-go-client/drive/v2",
+			"Rev": "0c2625c43fb3afba20032a374accacd47cfa1f0a"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/google-api-go-client/googleapi",
+			"Rev": "0c2625c43fb3afba20032a374accacd47cfa1f0a"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/log",
+			"Rev": "cad53c4565a0b0304577bd13f3862350bdc5f907"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/ripper/src",
+			"Rev": "bd1a682568fcb8a480b977bb5851452fc04f9ccb"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/statos",
+			"Rev": "f27d6ab69b62abd9d9fe80d355e23a3e45d347d6"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/xon/pkger/src",
+			"Rev": "0af932ae72e246898c3a49eab51137bb38ccdbf0"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "f0cf018861e2b54077eced91659e255072b5f215"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "8914e5017ca260f2a3a1575b1e6868874050d95e"
+		},
+		{
+			"ImportPath": "golang.org/x/text/collate",
+			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
+		},
+		{
+			"ImportPath": "golang.org/x/text/internal/colltab",
+			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
+		},
+		{
+			"ImportPath": "golang.org/x/text/language",
+			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
+		},
+		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
+			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
+		},
+		{
+			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
+			"Rev": "18450f4e95c7e76ce3a5dc3a8cb7178ab6d56121"
+		},
+		{
+			"ImportPath": "google.golang.org/cloud/compute/metadata",
+			"Rev": "f925ac6fddb170ae890f5cf83fb6cdb0bbdd0a9e"
+		},
+		{
+			"ImportPath": "google.golang.org/cloud/internal",
+			"Rev": "f925ac6fddb170ae890f5cf83fb6cdb0bbdd0a9e"
+		}
+	]
+}
