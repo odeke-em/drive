@@ -36,10 +36,16 @@ const (
 )
 
 const (
-	DefaultMaxProcs = 4
+	DefaultMaxProcs     = 4
+	MaxFailedRetryCount = uint32(20) // Arbitrary value
 )
 
 var BytesPerKB = float64(1024)
+
+var (
+	MsgInternalServerError = "googleapi: Error 500: Intneral Error, internalError"
+	MsgUserLimitExceeded   = "googleapi: Error 403: User rate limit exceeded, userRateLimitExceeded"
+)
 
 type desktopEntry struct {
 	name string
@@ -55,6 +61,35 @@ type playable struct {
 }
 
 func noop() {
+}
+
+type tuple struct {
+	first  interface{}
+	second interface{}
+	last   interface{}
+}
+
+func retryableErrorCheck(v interface{}) (ok, retryable bool) {
+	pr, pOk := v.(*tuple)
+	if pr == nil || !pOk {
+		return false, true
+	}
+
+	err, ok := pr.first.(error)
+	if !ok || err == nil {
+		return false, false
+	}
+
+	switch err.Error() {
+	case MsgUserLimitExceeded:
+		return false, true
+	case MsgInternalServerError:
+		return false, true
+	default:
+		return false, false
+	}
+
+	return false, true
 }
 
 func noopPlayable() *playable {

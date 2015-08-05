@@ -29,9 +29,11 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
-	drive "github.com/google/google-api-go-client/drive/v2"
 	"github.com/odeke-em/drive/config"
 	"github.com/odeke-em/statos"
+
+	drive "github.com/google/google-api-go-client/drive/v2"
+	expb "github.com/odeke-em/exponential-backoff"
 )
 
 const (
@@ -172,6 +174,15 @@ func (r *Remote) FindById(id string) (file *File, err error) {
 		return
 	}
 	return NewRemoteFile(f), nil
+}
+
+func retryableChangeOp(fn func() (interface{}, error)) *expb.ExponentialBacker {
+	return &expb.ExponentialBacker{
+		Do:          fn,
+		StatusCheck: retryableErrorCheck,
+		RetryCount:  MaxFailedRetryCount,
+		Debug:       true,
+	}
 }
 
 func (r *Remote) findByPath(p string, trashed bool) (*File, error) {
@@ -573,19 +584,49 @@ func (r *Remote) UpsertByComparison(args *upsertOpt) (f *File, err error) {
 		}
 	}()
 
-	mediaInserted := false
+	resultLoad := make(chan *tuple)
 
-	f, mediaInserted, err = r.upsertByComparison(bd, args)
+	go func() {
+		emitter := func() (interface{}, error) {
+			f, mediaInserted, err := r.upsertByComparison(bd, args)
+			return &tuple{first: f, second: mediaInserted, last: err}, err
+		}
 
-	// Case in which for example just Chtime-ing
-	if !mediaInserted && args.dest != nil {
-		chunks := chunkInt64(args.dest.Size)
-		for n := range chunks {
-			r.progressChan <- n
+		retrier := retryableChangeOp(emitter)
+
+		res, err := expb.ExponentialBackOffSync(retrier)
+		resultLoad <- &tuple{first: res, last: err}
+	}()
+
+	result := <-resultLoad
+	if result == nil {
+		return f, err
+	}
+
+	tup, tupOk := result.first.(*tuple)
+	if tupOk {
+		ff, fOk := tup.first.(*File)
+		if fOk {
+			f = ff
+		}
+
+		mediaInserted, mediaOk := tup.second.(bool)
+
+		// Case in which for example just Chtime-ing
+		if mediaOk && !mediaInserted && f != nil {
+			chunks := chunkInt64(f.Size)
+			for n := range chunks {
+				r.progressChan <- n
+			}
+		}
+
+		errV, errCastOk := tup.last.(error)
+		if errCastOk {
+			err = errV
 		}
 	}
 
-	return
+	return f, err
 }
 
 func (r *Remote) findShared(p []string) (chan *File, error) {
