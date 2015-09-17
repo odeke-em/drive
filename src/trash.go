@@ -53,7 +53,7 @@ func (g *Commands) Untrash(byId bool) (err error) {
 }
 
 func (g *Commands) EmptyTrash() error {
-	rootFile, err := g.rem.FindByPath("/")
+	rootFiles, err := g.rem.FindByPath("/")
 	if err != nil {
 		return err
 	}
@@ -62,68 +62,85 @@ func (g *Commands) EmptyTrash() error {
 	spin.play()
 	defer spin.stop()
 
-	if g.opts.canPrompt() {
-		travSt := traversalSt{
-			depth:            -1,
-			file:             rootFile,
-			headPath:         "/",
-			inTrash:          true,
-			mask:             g.opts.TypeMask,
-			explicitNoPrompt: true,
-		}
+	for _, rootFile := range rootFiles {
+		if g.opts.canPrompt() {
+			travSt := traversalSt{
+				depth:            -1,
+				file:             rootFile,
+				headPath:         "/",
+				inTrash:          true,
+				mask:             g.opts.TypeMask,
+				explicitNoPrompt: true,
+			}
 
-		if !g.breadthFirst(travSt, spin) {
-			return nil
+			if !g.breadthFirst(travSt, spin) {
+				break
+			}
 		}
+	}
 
-		g.log.Logln("This operation is irreversible. Empty trash! ")
+	g.log.Logln("This operation is irreversible. Empty trash! ")
 
-		if !promptForChanges() {
-			g.log.Logln("Aborted emptying trash")
-			return nil
-		}
+	if !promptForChanges() {
+		g.log.Logln("Aborted emptying trash")
+		return nil
 	}
 
 	err = g.rem.EmptyTrash()
 	if err == nil {
 		g.log.Logln("Successfully emptied trash")
 	}
+
 	return err
 }
 
-func (g *Commands) trasher(relToRoot string, opt *trashOpt) (*Change, error) {
-	var file *File
+func (g *Commands) trasher(relToRoot string, opt *trashOpt) (changes []*Change, errs []error) {
 	if relToRoot == "/" && opt.toTrash {
-		return nil, fmt.Errorf("Will not try to trash root.")
+		errs = append(errs, fmt.Errorf("Will not try to trash root."))
+		return
 	}
+
 	resolver := g.rem.FindByPathTrashed
+
 	if opt.byId {
-		resolver = g.rem.FindById
+		resolver = g.rem.FindByIdMulti
 	} else if opt.toTrash {
 		resolver = g.rem.FindByPath
 	}
 
-	file, err := resolver(relToRoot)
+	var err error
+	var files []*File
+
+	files, err = resolver(relToRoot)
 	if err != nil {
-		return nil, err
+		errs = append(errs, err)
+		return
 	}
 
-	if opt.byId {
-		if file.Labels != nil {
-			if file.Labels.Trashed == opt.toTrash {
-				return nil, fmt.Errorf("toTrash=%v set yet already file.Trash=%v", opt.toTrash, file.Labels.Trashed)
+	for _, file := range files {
+		if opt.byId {
+			if file.Labels != nil {
+				if file.Labels.Trashed == opt.toTrash {
+					errs = append(errs, fmt.Errorf("toTrash=%v set yet already file.Trash=%v", opt.toTrash, file.Labels.Trashed))
+					continue
+				}
 			}
+
+			relToRoot = fmt.Sprintf("%s (%s)", relToRoot, file.Name)
 		}
-		relToRoot = fmt.Sprintf("%s (%s)", relToRoot, file.Name)
+
+		change := &Change{Path: relToRoot, g: g}
+
+		if opt.toTrash {
+			change.Dest = file
+		} else {
+			change.Src = file
+		}
+
+		changes = append(changes, change)
 	}
 
-	change := &Change{Path: relToRoot, g: g}
-	if opt.toTrash {
-		change.Dest = file
-	} else {
-		change.Src = file
-	}
-	return change, nil
+	return
 }
 
 func (g *Commands) trashByMatch(inTrash, permanent bool) error {
@@ -197,11 +214,11 @@ func (g *Commands) DeleteByMatch() error {
 func (g *Commands) reduceForTrash(args []string, opt *trashOpt) error {
 	var cl []*Change
 	for _, relToRoot := range args {
-		c, cErr := g.trasher(relToRoot, opt)
+		ccls, cErr := g.trasher(relToRoot, opt)
 		if cErr != nil {
 			g.log.LogErrf("\033[91m'%s': %v\033[00m\n", relToRoot, cErr)
-		} else if c != nil {
-			cl = append(cl, c)
+		} else {
+			cl = append(cl, ccls...)
 		}
 	}
 

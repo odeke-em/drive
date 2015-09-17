@@ -28,37 +28,37 @@ type keyValue struct {
 }
 
 func (g *Commands) StatById() error {
-	return g.statfn("statById", g.rem.FindById)
+	return g.statfn("statById", g.rem.FindByIdMulti)
 }
 
 func (g *Commands) Stat() error {
 	return g.statfn("stat", g.rem.FindByPath)
 }
 
-func (g *Commands) statfn(fname string, fn func(string) (*File, error)) error {
+func (g *Commands) statfn(fname string, fn func(string) ([]*File, error)) error {
 	for _, src := range g.opts.Sources {
-		f, err := fn(src)
+		files, err := fn(src)
 		if err != nil {
 			g.log.LogErrf("%s: %s err: %v\n", fname, src, err)
 			continue
 		}
 
-		if g.opts.Md5sum {
+		for _, f := range files {
+			if g.opts.Md5sum {
+				src = f.Name // forces filename if -id is used
 
-			src = f.Name // forces filename if -id is used
-
-			// md5sum with no arguments should do md5sum *
-			if f.IsDir && rootLike(g.opts.Path) {
-				src = ""
+				// md5sum with no arguments should do md5sum *
+				if f.IsDir && rootLike(g.opts.Path) {
+					src = ""
+				}
 			}
 
-		}
+			err = g.stat(src, f, g.opts.Depth)
 
-		err = g.stat(src, f, g.opts.Depth)
-
-		if err != nil {
-			g.log.LogErrf("%s: %s err: %v\n", fname, src, err)
-			continue
+			if err != nil {
+				g.log.LogErrf("%s: %s err: %v\n", fname, src, err)
+				continue
+			}
 		}
 	}
 

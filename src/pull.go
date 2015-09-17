@@ -186,23 +186,28 @@ func (g *Commands) PullMatches() (err error) {
 func (g *Commands) PullPiped(byId bool) (err error) {
 	resolver := g.rem.FindByPath
 	if byId {
-		resolver = g.rem.FindById
+		resolver = g.rem.FindByIdMulti
 	}
 
 	for _, relToRootPath := range g.opts.Sources {
-		rem, err := resolver(relToRootPath)
+		remotes, err := resolver(relToRootPath)
+
 		if err != nil {
 			return fmt.Errorf("%s: %v", relToRootPath, err)
 		}
-		if rem == nil {
-			continue
-		}
 
-		err = g.pullAndDownload(relToRootPath, os.Stdout, rem, true)
-		if err != nil {
-			return err
+		for _, rem := range remotes {
+			if rem == nil {
+				continue
+			}
+
+			err = g.pullAndDownload(relToRootPath, os.Stdout, rem, true)
+			if err != nil {
+				g.log.LogErrf("pullPiped:: %s %s: %v\n", relToRootPath, rem.Id, err)
+			}
 		}
 	}
+
 	return nil
 }
 

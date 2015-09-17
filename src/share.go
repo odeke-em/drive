@@ -128,25 +128,31 @@ var reverseRoleResolve = stringToRole()
 var reverseAccountTypeResolve = stringToAccountType()
 
 func (g *Commands) resolveRemotePaths(relToRootPaths []string, byId bool) (files []*File) {
-	var wg sync.WaitGroup
-
 	resolver := g.rem.FindByPath
 	if byId {
-		resolver = g.rem.FindById
+		resolver = g.rem.FindByIdMulti
 	}
 
-	wg.Add(len(relToRootPaths))
+	done := make(chan bool)
+	doneCount := uint64(0)
+
 	for _, relToRoot := range relToRootPaths {
-		go func(p string, wgg *sync.WaitGroup) {
-			defer wgg.Done()
-			file, err := resolver(p)
-			if err != nil || file == nil {
-				return
+		doneCount += 1
+
+		go func(p string) {
+			childFiles, err := resolver(p)
+			if err == nil {
+				files = append(files, childFiles...)
 			}
-			files = append(files, file)
-		}(relToRoot, &wg)
+
+			done <- true
+		}(relToRoot)
 	}
-	wg.Wait()
+
+	for i := uint64(0); i < doneCount; i++ {
+		<-done
+	}
+
 	return files
 }
 

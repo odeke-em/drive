@@ -176,7 +176,22 @@ func (r *Remote) FindById(id string) (file *File, err error) {
 	if f, err = req.Do(); err != nil {
 		return
 	}
+
 	return NewRemoteFile(f), nil
+}
+
+func (r *Remote) FindByIdMulti(id string) (files []*File, err error) {
+	var f *File
+	f, err = r.FindById(id)
+	if err != nil {
+		return
+	}
+
+	if f != nil {
+		files = append(files, f)
+	}
+
+	return
 }
 
 func retryableChangeOp(fn func() (interface{}, error)) *expb.ExponentialBacker {
@@ -188,10 +203,11 @@ func retryableChangeOp(fn func() (interface{}, error)) *expb.ExponentialBacker {
 	}
 }
 
-func (r *Remote) findByPath(p string, trashed bool) (*File, error) {
+func (r *Remote) findByPath(p string, trashed bool) ([]*File, error) {
 	if rootLike(p) {
-		return r.FindById("root")
+		return r.FindByIdMulti("root")
 	}
+
 	parts := strings.Split(p, "/")
 	finder := r.findByPathRecv
 	if trashed {
@@ -200,11 +216,11 @@ func (r *Remote) findByPath(p string, trashed bool) (*File, error) {
 	return finder("root", parts[1:])
 }
 
-func (r *Remote) FindByPath(p string) (file *File, err error) {
+func (r *Remote) FindByPath(p string) ([]*File, error) {
 	return r.findByPath(p, false)
 }
 
-func (r *Remote) FindByPathTrashed(p string) (file *File, err error) {
+func (r *Remote) FindByPathTrashed(p string) ([]*File, error) {
 	return r.findByPath(p, true)
 }
 
@@ -381,6 +397,16 @@ func (r *Remote) Touch(id string) (*File, error) {
 		return nil, ErrPathNotExists
 	}
 	return NewRemoteFile(f), err
+}
+
+func (r *Remote) TouchMulti(id string) (files []*File, err error) {
+	f, fErr := r.Touch(id)
+	if fErr != nil {
+		return
+	}
+
+	files = append(files, f)
+	return
 }
 
 func toUTCString(t time.Time) string {
@@ -661,20 +687,45 @@ func (r *Remote) FindByPathShared(p string) (chan *File, error) {
 }
 
 func (r *Remote) FindMatches(mq *matchQuery) (chan *File, error) {
-	parent, err := r.FindByPath(mq.dirPath)
+	parents, err := r.FindByPath(mq.dirPath)
+
 	filesChan := make(chan *File)
-	if err != nil || parent == nil {
+	defer close(filesChan)
+
+	if err != nil || len(parents) < 1 {
 		close(filesChan)
 		return filesChan, err
 	}
 
-	req := r.service.Files.List()
+	done := make(chan bool)
+	doneCount := uint64(0)
 
-	parQuery := fmt.Sprintf("(%s in parents)", customQuote(parent.Id))
-	expr := sepJoinNonEmpty(" and ", parQuery, mq.Stringer())
+	for _, parent := range parents {
+		doneCount += 1
 
-	req.Q(expr)
-	return reqDoPage(req, true, false), nil
+		go func(par *File) {
+			req := r.service.Files.List()
+
+			parQuery := fmt.Sprintf("(%s in parents)", customQuote(par.Id))
+			expr := sepJoinNonEmpty(" and ", parQuery, mq.Stringer())
+
+			req.Q(expr)
+
+			matches := reqDoPage(req, true, false)
+
+			for f := range matches {
+				filesChan <- f
+			}
+
+			done <- true
+		}(parent)
+	}
+
+	for i := uint64(0); i < doneCount; i++ {
+		<-done
+	}
+
+	return filesChan, nil
 }
 
 func (r *Remote) findChildren(parentId string, trashed bool) chan *File {
@@ -687,7 +738,7 @@ func (r *Remote) About() (about *drive.About, err error) {
 	return r.service.About.Get().Do()
 }
 
-func (r *Remote) findByPathRecvRaw(parentId string, p []string, trashed bool) (file *File, err error) {
+func (r *Remote) findByPathRecvRaw(parentId string, p []string, trashed bool) (files []*File, err error) {
 	// find the file or directory under parentId and titled with p[0]
 	req := r.service.Files.List()
 	// TODO: use field selectors
@@ -702,33 +753,44 @@ func (r *Remote) findByPathRecvRaw(parentId string, p []string, trashed bool) (f
 	req.Q(expr)
 
 	// We only need the head file since we expect only one File to be created
-	req.MaxResults(1)
+	// req.MaxResults(1)
 
-	files, err := req.Do()
+	fl, err := req.Do()
 
 	if err != nil {
 		if err.Error() == ErrGoogleApiInvalidQueryHardCoded.Error() { // Send the user back the query information
 			err = fmt.Errorf("err: %v query: `%s`", err, expr)
 		}
-		return nil, err
+		return
 	}
 
-	if files == nil || len(files.Items) < 1 {
-		return nil, ErrPathNotExists
+	if fl == nil || len(fl.Items) < 1 {
+		err = ErrPathNotExists
+		return
 	}
 
-	first := files.Items[0]
 	if len(p) == 1 {
-		return NewRemoteFile(first), nil
+		for _, f := range fl.Items {
+			files = append(files, NewRemoteFile(f))
+		}
+		return files, nil
 	}
-	return r.findByPathRecvRaw(first.Id, p[1:], trashed)
+
+	for _, f := range fl.Items {
+		children, cErr := r.findByPathRecvRaw(f.Id, p[1:], trashed)
+		if cErr == nil {
+			files = append(files, children...)
+		}
+	}
+
+	return files, nil
 }
 
-func (r *Remote) findByPathRecv(parentId string, p []string) (file *File, err error) {
+func (r *Remote) findByPathRecv(parentId string, p []string) (file []*File, err error) {
 	return r.findByPathRecvRaw(parentId, p, false)
 }
 
-func (r *Remote) findByPathTrashed(parentId string, p []string) (file *File, err error) {
+func (r *Remote) findByPathTrashed(parentId string, p []string) (file []*File, err error) {
 	return r.findByPathRecvRaw(parentId, p, true)
 }
 

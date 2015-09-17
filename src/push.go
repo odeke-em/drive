@@ -168,10 +168,18 @@ func (g *Commands) resolveConflicts(cl []*Change, push bool) (*[]*Change, *[]*Ch
 func (g *Commands) PushPiped() (err error) {
 	// Cannot push asynchronously because the push order must be maintained
 	for _, relToRootPath := range g.opts.Sources {
-		rem, resErr := g.rem.FindByPath(relToRootPath)
+		remotes, resErr := g.rem.FindByPath(relToRootPath)
 		if resErr != nil && resErr != ErrPathNotExists {
 			return resErr
 		}
+
+		if len(remotes) < 1 {
+			continue
+		}
+
+		// TODO: Decide if pushing to all those remotes should proceed
+		rem := remotes[0]
+
 		if rem != nil && !g.opts.Force {
 			return fmt.Errorf("%s already exists remotely, use `%s` to override this behaviour.\n", relToRootPath, ForceKey)
 		}
@@ -187,8 +195,12 @@ func (g *Commands) PushPiped() (err error) {
 		}
 
 		parentPath := g.parentPather(relToRootPath)
-		parent, pErr := g.rem.FindByPath(parentPath)
-		if pErr != nil {
+		parents, pErr := g.rem.FindByPath(parentPath)
+		var parent *File
+
+		if pErr == nil && len(parents) >= 1 {
+			parent = parents[0]
+		} else {
 			spin := g.playabler()
 			spin.play()
 			parent, pErr = g.remoteMkdirAll(parentPath)
@@ -355,12 +367,17 @@ func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounte
 }
 
 func lonePush(g *Commands, parent, absPath, path string) (cl, clashes []*Change, err error) {
-	r, err := g.rem.FindByPath(absPath)
+	remotes, err := g.rem.FindByPath(absPath)
 	if err != nil && err != ErrPathNotExists {
 		return
 	}
 
-	var l *File
+	var r, l *File
+
+	if len(remotes) >= 1 {
+		r = remotes[0]
+	}
+
 	localinfo, _ := os.Stat(path)
 	if localinfo != nil {
 		l = NewLocalFile(path, localinfo)
@@ -537,7 +554,13 @@ func (g *Commands) remoteMkdirAll(d string) (file *File, err error) {
 	}
 
 	// Try the lookup one last time in case a coroutine raced us to it.
-	retrFile, retryErr := g.rem.FindByPath(d)
+	retrFiles, retryErr := g.rem.FindByPath(d)
+
+	var retrFile *File
+
+	if len(retrFiles) >= 1 {
+		retrFile = retrFiles[0]
+	}
 
 	if retryErr != nil && retryErr != ErrPathNotExists {
 		mkdirAllMu.Unlock()
@@ -551,7 +574,12 @@ func (g *Commands) remoteMkdirAll(d string) (file *File, err error) {
 
 	parDirPath, last := remotePathSplit(d)
 
-	parent, parentErr := g.rem.FindByPath(parDirPath)
+	parents, parentErr := g.rem.FindByPath(parDirPath)
+
+	var parent *File
+	if len(parents) >= 1 {
+		parent = parents[0]
+	}
 
 	if parentErr != nil && parentErr != ErrPathNotExists {
 		mkdirAllMu.Unlock()

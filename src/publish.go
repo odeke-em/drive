@@ -27,34 +27,38 @@ func (c *Commands) Publish(byId bool) (err error) {
 	return
 }
 
-func (c *Commands) remFileResolve(relToRoot string, byId bool) (*File, error) {
+func (c *Commands) remFileResolve(relToRoot string, byId bool) ([]*File, error) {
 	resolver := c.rem.FindByPath
 	if byId {
-		resolver = c.rem.FindById
+		resolver = c.rem.FindByIdMulti
 	}
 
 	return resolver(relToRoot)
 }
 
-func (c *Commands) pub(relToRoot string, byId bool) (err error) {
-	file, err := c.remFileResolve(relToRoot, byId)
-	if err != nil || file == nil {
-		return err
-	}
-
-	var link string
-	link, err = c.rem.Publish(file.Id)
-	if err != nil {
+func (c *Commands) pub(relToRoot string, byId bool) (errs []error) {
+	files, err := c.remFileResolve(relToRoot, byId)
+	if err != nil || len(files) < 1 {
+		errs = append(errs, err)
 		return
 	}
 
-	link = file.Url()
+	for _, file := range files {
+		link, err := c.rem.Publish(file.Id)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
 
-	if byId {
-		relToRoot = fmt.Sprintf("%s aka %s", relToRoot, file.Name)
+		link = file.Url()
+
+		if byId {
+			relToRoot = fmt.Sprintf("%s aka %s", relToRoot, file.Name)
+		}
+
+		c.log.Logf("%s published on %s\n", relToRoot, link)
 	}
 
-	c.log.Logf("%s published on %s\n", relToRoot, link)
 	return
 }
 
@@ -67,11 +71,18 @@ func (c *Commands) Unpublish(byId bool) error {
 	return nil
 }
 
-func (c *Commands) unpub(relToRoot string, byId bool) error {
-	file, err := c.remFileResolve(relToRoot, byId)
+func (c *Commands) unpub(relToRoot string, byId bool) (errs []error) {
+	files, err := c.remFileResolve(relToRoot, byId)
 	if err != nil {
-		return err
+		errs = append(errs, err)
+		return
 	}
 
-	return c.rem.Unpublish(file.Id)
+	for _, file := range files {
+		if upErr := c.rem.Unpublish(file.Id); upErr != nil {
+			errs = append(errs, upErr)
+		}
+	}
+
+	return errs
 }

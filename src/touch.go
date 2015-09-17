@@ -126,36 +126,40 @@ func (g *Commands) touch(relToRootPath, fileId string) chan *keyValue {
 			close(fileChan)
 		}()
 
-		f, arg := g.rem.Touch, fileId
+		f, arg := g.rem.TouchMulti, fileId
 		if fileId == "" {
 			f, arg = g.touchByPath, relToRootPath
 		}
-		file, err := f(arg)
+		files, err := f(arg)
 
 		if err != nil {
 			kv.value = err
 			return
 		}
 
-		if true { // TODO: Print this out if verbosity is set
-			g.log.Logf("%s: %v\n", relToRootPath, file.ModTime)
-		}
-		if g.opts.Recursive && file.IsDir {
-			childResults := make(chan chan *keyValue)
-			go func() {
-				// Arbitrary value for rate limiter
-				throttle := time.Tick(1e9 * 2)
-				childrenChan := g.rem.findByParentIdRaw(file.Id, false, g.opts.Hidden)
-				for child := range childrenChan {
-					childResults <- g.touch(relToRootPath+"/"+child.Name, child.Id)
-					<-throttle
-				}
-				close(childResults)
-			}()
+		for _, file := range files {
+			if true { // TODO: Print this out if verbosity is set
+				g.log.Logf("%s: %v\n", relToRootPath, file.ModTime)
+			}
 
-			for childChan := range childResults {
-				for childFile := range childChan {
-					fileChan <- childFile
+			if g.opts.Recursive && file.IsDir {
+				childResults := make(chan chan *keyValue)
+
+				go func() {
+					// Arbitrary value for rate limiter
+					throttle := time.Tick(1e9 * 2)
+					childrenChan := g.rem.findByParentIdRaw(file.Id, false, g.opts.Hidden)
+					for child := range childrenChan {
+						childResults <- g.touch(relToRootPath+"/"+child.Name, child.Id)
+						<-throttle
+					}
+					close(childResults)
+				}()
+
+				for childChan := range childResults {
+					for childFile := range childChan {
+						fileChan <- childFile
+					}
 				}
 			}
 		}
@@ -163,13 +167,23 @@ func (g *Commands) touch(relToRootPath, fileId string) chan *keyValue {
 	return fileChan
 }
 
-func (g *Commands) touchByPath(relToRootPath string) (*File, error) {
-	file, err := g.rem.FindByPath(relToRootPath)
+func (g *Commands) touchByPath(relToRootPath string) (files []*File, err error) {
+	files, err = g.rem.FindByPath(relToRootPath)
 	if err != nil {
-		return nil, err
+		return
 	}
-	if file == nil {
-		return nil, ErrPathNotExists
+
+	if len(files) < 1 {
+		err = ErrPathNotExists
+		return
 	}
-	return g.rem.Touch(file.Id)
+
+	for _, f := range files {
+		file, fErr := g.rem.Touch(f.Id)
+		if fErr == nil && file != nil {
+			files = append(files, file)
+		}
+	}
+
+	return
 }

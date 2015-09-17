@@ -32,7 +32,7 @@ func (g *Commands) Url(byId bool) error {
 func (g *Commands) urler(byId bool) (kvChan chan *keyValue) {
 	resolver := g.rem.FindByPath
 	if byId {
-		resolver = g.rem.FindById
+		resolver = g.rem.FindByIdMulti
 	}
 
 	kvChan = make(chan *keyValue)
@@ -41,14 +41,16 @@ func (g *Commands) urler(byId bool) (kvChan chan *keyValue) {
 		defer close(kvChan)
 
 		for _, source := range g.opts.Sources {
-			f, err := resolver(source)
+			files, err := resolver(source)
 
-			kv := keyValue{key: source, value: err}
-			if err == nil {
-				kv.value = f.Url()
+			for _, f := range files {
+				kv := keyValue{key: source, value: err}
+				if err == nil {
+					kv.value = f.Url()
+				}
+
+				kvChan <- &kv
 			}
-
-			kvChan <- &kv
 		}
 	}()
 

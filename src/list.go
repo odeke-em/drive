@@ -179,7 +179,7 @@ func (g *Commands) List(byId bool) error {
 
 	resolver := g.rem.FindByPath
 	if byId {
-		resolver = g.rem.FindById
+		resolver = g.rem.FindByIdMulti
 	} else if g.opts.InTrash {
 		resolver = g.rem.FindByPathTrashed
 	}
@@ -187,34 +187,36 @@ func (g *Commands) List(byId bool) error {
 	mq := g.createMatchQuery(true)
 
 	for _, relPath := range g.opts.Sources {
-		r, rErr := resolver(relPath)
+		rl, rErr := resolver(relPath)
 		if rErr != nil && rErr != ErrPathNotExists {
 			return fmt.Errorf("%v: '%s'", rErr, relPath)
 		}
 
-		if r == nil {
-			g.log.LogErrf("remote: %s is nil\n", strconv.Quote(relPath))
-			continue
-		}
+		for _, r := range rl {
+			if r == nil {
+				g.log.LogErrf("remote: %s is nil\n", strconv.Quote(relPath))
+				continue
+			}
 
-		parentPath := ""
-		if !byId {
-			parentPath = g.parentPather(relPath)
-		} else {
-			parentPath = r.Id
-		}
+			parentPath := ""
+			if !byId {
+				parentPath = g.parentPather(relPath)
+			} else {
+				parentPath = r.Id
+			}
 
-		if remoteRootLike(parentPath) {
-			parentPath = ""
-		}
-		if remoteRootLike(r.Name) {
-			r.Name = ""
-		}
-		if rootLike(parentPath) {
-			parentPath = ""
-		}
+			if remoteRootLike(parentPath) {
+				parentPath = ""
+			}
+			if remoteRootLike(r.Name) {
+				r.Name = ""
+			}
+			if rootLike(parentPath) {
+				parentPath = ""
+			}
 
-		kvList = append(kvList, &keyValue{key: parentPath, value: r})
+			kvList = append(kvList, &keyValue{key: parentPath, value: r})
+		}
 	}
 
 	spin := g.playabler()
