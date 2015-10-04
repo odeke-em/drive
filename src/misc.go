@@ -18,7 +18,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -29,6 +32,7 @@ import (
 	"google.golang.org/api/googleapi"
 
 	spinner "github.com/odeke-em/cli-spinner"
+	"github.com/odeke-em/drive/config"
 )
 
 const (
@@ -654,4 +658,95 @@ func reComposeError(prevErr error, messages ...string) error {
 	}
 
 	return errors.New(joinedMessage)
+}
+
+func decrementTraversalDepth(d int) int {
+	// Anything less than 0 is a request for infinite traversal
+	// 0 is the minimum positive traversal
+	if d <= 0 {
+		return d
+	}
+
+	return d - 1
+}
+
+type fsListingArg struct {
+	context *config.Context
+	parent  string
+	hidden  bool
+	ignore  *regexp.Regexp
+	depth   int
+}
+
+func list(flArg *fsListingArg) (fileChan chan *File, err error) {
+	context := flArg.context
+	p := flArg.parent
+	hidden := flArg.hidden
+	ignore := flArg.ignore
+	depth := flArg.depth
+
+	absPath := context.AbsPathOf(p)
+	var f []os.FileInfo
+	f, err = ioutil.ReadDir(absPath)
+	fileChan = make(chan *File)
+	if err != nil {
+		close(fileChan)
+		return
+	}
+
+	go func() {
+		for _, file := range f {
+			depth = decrementTraversalDepth(depth)
+			if depth == 0 {
+				break
+			}
+
+			fileName := file.Name()
+			if fileName == config.GDDirSuffix {
+				continue
+			}
+			if isHidden(fileName, hidden) {
+				continue
+			}
+
+			resPath := path.Join(absPath, fileName)
+			if anyMatch(ignore, fileName, resPath) {
+				continue
+			}
+
+			// TODO: (@odeke-em) decide on how to deal with isFifo
+			if namedPipe(file.Mode()) {
+				fmt.Fprintf(os.Stderr, "%s (%s) is a named pipe, not reading from it\n", p, resPath)
+				continue
+			}
+
+			if !symlink(file.Mode()) {
+				fileChan <- NewLocalFile(resPath, file)
+			} else {
+				var symResolvPath string
+				symResolvPath, err = filepath.EvalSymlinks(resPath)
+				if err != nil {
+					continue
+				}
+
+				if anyMatch(ignore, symResolvPath) {
+					continue
+				}
+
+				var symInfo os.FileInfo
+				symInfo, err = os.Stat(symResolvPath)
+				if err != nil {
+					continue
+				}
+
+				lf := NewLocalFile(symResolvPath, symInfo)
+				// Retain the original name as appeared in
+				// the manifest instead of the resolved one
+				lf.Name = fileName
+				fileChan <- lf
+			}
+		}
+		close(fileChan)
+	}()
+	return
 }

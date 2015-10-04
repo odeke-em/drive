@@ -16,12 +16,10 @@ package drive
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	gopath "path"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -620,66 +618,4 @@ func namedPipe(mode os.FileMode) bool {
 
 func symlink(mode os.FileMode) bool {
 	return (mode & os.ModeSymlink) != 0
-}
-
-func list(context *config.Context, p string, hidden bool, ignore *regexp.Regexp) (fileChan chan *File, err error) {
-	absPath := context.AbsPathOf(p)
-	var f []os.FileInfo
-	f, err = ioutil.ReadDir(absPath)
-	fileChan = make(chan *File)
-	if err != nil {
-		close(fileChan)
-		return
-	}
-
-	go func() {
-		for _, file := range f {
-			fileName := file.Name()
-			if fileName == config.GDDirSuffix {
-				continue
-			}
-			if isHidden(fileName, hidden) {
-				continue
-			}
-
-			resPath := gopath.Join(absPath, fileName)
-			if anyMatch(ignore, fileName, resPath) {
-				continue
-			}
-
-			// TODO: (@odeke-em) decide on how to deal with isFifo
-			if namedPipe(file.Mode()) {
-				fmt.Fprintf(os.Stderr, "%s (%s) is a named pipe, not reading from it\n", p, resPath)
-				continue
-			}
-
-			if !symlink(file.Mode()) {
-				fileChan <- NewLocalFile(resPath, file)
-			} else {
-				var symResolvPath string
-				symResolvPath, err = filepath.EvalSymlinks(resPath)
-				if err != nil {
-					continue
-				}
-
-				if anyMatch(ignore, symResolvPath) {
-					continue
-				}
-
-				var symInfo os.FileInfo
-				symInfo, err = os.Stat(symResolvPath)
-				if err != nil {
-					continue
-				}
-
-				lf := NewLocalFile(symResolvPath, symInfo)
-				// Retain the original name as appeared in
-				// the manifest instead of the resolved one
-				lf.Name = fileName
-				fileChan <- lf
-			}
-		}
-		close(fileChan)
-	}()
-	return
 }

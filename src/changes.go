@@ -159,6 +159,7 @@ func (g *Commands) doChangeListRecv(relToRoot, fsPath string, l, r *File, push b
 		local:  l,
 		push:   push,
 		remote: r,
+		depth:  g.opts.Depth,
 	}
 
 	return g.resolveChangeListRecv(clr)
@@ -213,6 +214,18 @@ type changeListResolve struct {
 	local  *File
 	remote *File
 	push   bool
+	depth  int
+}
+
+type changeSliceArg struct {
+	clashesMap    map[int][]*Change
+	id            int
+	wg            *sync.WaitGroup
+	depth         int
+	push          bool
+	parent        string
+	dirList       []*dirList
+	changeListPtr *[]*Change
 }
 
 func (g *Commands) resolveChangeListRecv(clr *changeListResolve) (cl, clashes []*Change, err error) {
@@ -292,13 +305,25 @@ func (g *Commands) resolveChangeListRecv(clr *changeListResolve) (cl, clashes []
 		return cl, clashes, nil
 	}
 
+	traversalDepth := clr.depth
+
+	if traversalDepth == 0 {
+		return
+	}
+
 	// look-up for children
 	var localChildren chan *File
 	if l == nil || !l.IsDir {
 		localChildren = make(chan *File)
 		close(localChildren)
 	} else {
-		localChildren, err = list(g.context, base, g.opts.Hidden, g.opts.IgnoreRegexp)
+		fslArg := fsListingArg{
+			context: g.context,
+			depth:   traversalDepth,
+			ignore:  g.opts.IgnoreRegexp,
+		}
+
+		localChildren, err = list(&fslArg)
 		if err != nil {
 			return
 		}
@@ -345,13 +370,26 @@ func (g *Commands) resolveChangeListRecv(clr *changeListResolve) (cl, clashes []
 
 	clashesMap := make(map[int][]*Change)
 
+	traversalDepth = decrementTraversalDepth(traversalDepth)
+
 	for j := 0; j < chunkCount; j += 1 {
 		end := i + chunkSize
 		if end >= srcLen {
 			end = srcLen
 		}
 
-		go g.changeSlice(clashesMap, j, &wg, clr.push, &cl, base, dirlist[i:end])
+		cslArgs := changeSliceArg{
+			id:            j,
+			wg:            &wg,
+			push:          clr.push,
+			dirList:       dirlist[i:end],
+			parent:        base,
+			depth:         traversalDepth,
+			changeListPtr: &cl,
+			clashesMap:    clashesMap,
+		}
+
+		go g.changeSlice(&cslArgs)
 
 		i += chunkSize
 	}
@@ -368,7 +406,15 @@ func (g *Commands) resolveChangeListRecv(clr *changeListResolve) (cl, clashes []
 	return cl, clashes, err
 }
 
-func (g *Commands) changeSlice(clashesMap map[int][]*Change, id int, wg *sync.WaitGroup, push bool, cl *[]*Change, p string, dlist []*dirList) {
+func (g *Commands) changeSlice(cslArg *changeSliceArg) {
+	clashesMap := cslArg.clashesMap
+	id := cslArg.id
+	wg := cslArg.wg
+	push := cslArg.push
+	cl := cslArg.changeListPtr
+	p := cslArg.parent
+	dlist := cslArg.dirList
+
 	defer wg.Done()
 	for _, l := range dlist {
 		// Avoiding path.Join which normalizes '/+' to '/'
@@ -385,6 +431,7 @@ func (g *Commands) changeSlice(clashesMap map[int][]*Change, id int, wg *sync.Wa
 			base:   joined,
 			remote: l.remote,
 			local:  l.local,
+			depth:  cslArg.depth,
 		}
 
 		childChanges, childClashes, cErr := g.resolveChangeListRecv(clr)

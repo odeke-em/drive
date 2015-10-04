@@ -33,6 +33,10 @@ var Ruler = strings.Repeat("*", 4)
 func (g *Commands) Diff() (err error) {
 	var cl []*Change
 
+	spin := g.playabler()
+	spin.play()
+	defer spin.stop()
+
 	for _, relToRootPath := range g.opts.Sources {
 		fsPath := g.context.AbsPathOf(relToRootPath)
 		ccl, _, cErr := g.changeListResolve(relToRootPath, fsPath, true)
@@ -45,6 +49,8 @@ func (g *Commands) Diff() (err error) {
 			cl = append(cl, ccl...)
 		}
 	}
+
+	spin.stop()
 
 	var diffUtilPath string
 	diffUtilPath, err = exec.LookPath("diff")

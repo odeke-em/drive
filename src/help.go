@@ -165,6 +165,10 @@ const (
 )
 
 const (
+	DefaultMaxTraversalDepth = -1
+)
+
+const (
 	GoogleApiClientIdEnvKey     = "GOOGLE_API_CLIENT_ID"
 	GoogleApiClientSecretEnvKey = "GOOGLE_API_CLIENT_SECRET"
 	DriveGoMaxProcsKey          = "DRIVE_GOMAXPROCS"

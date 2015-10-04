@@ -247,7 +247,7 @@ type listCmd struct {
 }
 
 func (cmd *listCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
-	cmd.depth = fs.Int(drive.DepthKey, 1, "maximum recursion depth")
+	cmd.depth = fs.Int(drive.DepthKey, 1, "max traversal depth")
 	cmd.hidden = fs.Bool(drive.HiddenKey, false, "list all paths even hidden ones")
 	cmd.files = fs.Bool("f", false, "list only files")
 	cmd.directories = fs.Bool("d", false, "list all directories")
@@ -346,7 +346,7 @@ type md5SumCmd struct {
 }
 
 func (cmd *md5SumCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
-	cmd.depth = fs.Int(drive.DepthKey, 1, "maximum recursion depth")
+	cmd.depth = fs.Int(drive.DepthKey, 1, "max traversal depth")
 	cmd.hidden = fs.Bool(drive.HiddenKey, false, "discover hidden paths")
 	cmd.recursive = fs.Bool("r", false, "recursively discover folders")
 	cmd.quiet = fs.Bool(drive.QuietKey, false, "if set, do not log anything but errors")
@@ -389,7 +389,7 @@ type statCmd struct {
 }
 
 func (cmd *statCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
-	cmd.depth = fs.Int(drive.DepthKey, 1, "maximum recursion depth")
+	cmd.depth = fs.Int(drive.DepthKey, 1, "max traversal depth")
 	cmd.hidden = fs.Bool(drive.HiddenKey, false, "discover hidden paths")
 	cmd.recursive = fs.Bool("r", false, "recursively discover folders")
 	cmd.quiet = fs.Bool(drive.QuietKey, false, "if set, do not log anything but errors")
@@ -525,6 +525,7 @@ type pullCmd struct {
 	explicitlyExport  *bool
 
 	verbose *bool
+	depth   *int
 }
 
 func (cmd *pullCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
@@ -547,6 +548,7 @@ func (cmd *pullCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
 	cmd.skipMimeKey = fs.String(drive.CLIOptionSkipMime, "", drive.DescSkipMime)
 	cmd.explicitlyExport = fs.Bool(drive.CLIOptionExplicitlyExport, false, drive.DescExplicitylPullExports)
 	cmd.verbose = fs.Bool(drive.CLIOptionVerboseKey, false, drive.DescVerbose)
+	cmd.depth = fs.Int(drive.DepthKey, drive.DefaultMaxTraversalDepth, "max traversal depth")
 
 	return fs
 }
@@ -586,6 +588,7 @@ func (cmd *pullCmd) Run(args []string) {
 		ExplicitlyExport:  *cmd.explicitlyExport,
 		Meta:              &meta,
 		Verbose:           *cmd.verbose,
+		Depth:             *cmd.depth,
 	}
 
 	if *cmd.matches {
@@ -619,6 +622,7 @@ type pushCmd struct {
 	excludeOps        *string
 	skipMimeKey       *string
 	verbose           *bool
+	depth             *int
 }
 
 func (cmd *pushCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
@@ -639,6 +643,7 @@ func (cmd *pushCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
 	cmd.excludeOps = fs.String(drive.CLIOptionExcludeOperations, "", drive.DescExcludeOps)
 	cmd.skipMimeKey = fs.String(drive.CLIOptionSkipMime, "", drive.DescSkipMime)
 	cmd.verbose = fs.Bool(drive.CLIOptionVerboseKey, false, drive.DescVerbose)
+	cmd.depth = fs.Int(drive.DepthKey, drive.DefaultMaxTraversalDepth, "max traversal depth")
 	return fs
 }
 
@@ -730,6 +735,7 @@ func (cmd *pushCmd) createPushOptions() *drive.Options {
 		ExcludeCrudMask:   excludeCrudMask,
 		IgnoreNameClashes: *cmd.ignoreNameClashes,
 		Verbose:           *cmd.verbose,
+		Depth:             *cmd.depth,
 	}
 }
 
@@ -822,6 +828,7 @@ type diffCmd struct {
 	ignoreChecksum    *bool
 	ignoreNameClashes *bool
 	quiet             *bool
+	depth             *int
 }
 
 func (cmd *diffCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
@@ -830,6 +837,7 @@ func (cmd *diffCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
 	cmd.ignoreConflict = fs.Bool(drive.CLIOptionIgnoreConflict, false, drive.DescIgnoreConflict)
 	cmd.ignoreNameClashes = fs.Bool(drive.CLIOptionIgnoreNameClashes, false, drive.DescIgnoreNameClashes)
 	cmd.quiet = fs.Bool(drive.QuietKey, false, "if set, do not log anything but errors")
+	cmd.depth = fs.Int(drive.DepthKey, drive.DefaultMaxTraversalDepth, "max traversal depth")
 	return fs
 }
 
@@ -845,6 +853,7 @@ func (cmd *diffCmd) Run(args []string) {
 		IgnoreNameClashes: *cmd.ignoreNameClashes,
 		IgnoreConflict:    *cmd.ignoreConflict,
 		Quiet:             *cmd.quiet,
+		Depth:             *cmd.depth,
 	}).Diff())
 }
 
