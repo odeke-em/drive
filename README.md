@@ -333,7 +333,7 @@ $ drive push -piped path
 Here is an example using drive to backup the current working directory. It pushes a tar.gz archive created on the fly. No archive file is made on the machine running the command, so it doesn't waste disk space.
 
 ```shell
-$ tar czf - . | drive push -piped $(date +"%m-%d-%Y-"%T"").tar.gz
+$ tar czf - . | drive push -piped backup-$(date +"%m-%d-%Y-%T").tar.gz
 ```
 
 + Note:
