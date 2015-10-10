@@ -330,6 +330,12 @@ drive also supports pushing content piped from stdin which can be accomplished b
 $ drive push -piped path
 ```
 
+Here is an example using drive to backup the current working directory. It pushes a tar.gz archive created on the fly. No archive file is made on the machine running the command, so it doesn't waste disk space.
+
+```shell
+$ tar czf - . | drive push -piped $(date +"%m-%d-%Y-"%T"").tar.gz
+```
+
 + Note:
   * In response to [#107](https://github.com/odeke-em/drive/issues/107) and numerous other issues related to confusion about clashing paths, drive can now auto-rename clashing files. Use flag `--fix-clashes` during a `pull` or `push`, and drive will try to rename clashing files by adding a unique suffix at the end of the name, but right before the extension of a file (if the extension exists). If you haven't passed in the above `--fix-clashes` flag, drive will abort on trying to deal with clashing names. If you'd like to turn off this safety, pass in flag `--ignore-name-clashes`
   * In relation to [#57](https://github.com/odeke-em/drive/issues/57) and [@rakyll's #49](https://github.com/rakyll/drive/issues/49).
