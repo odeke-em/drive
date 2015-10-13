@@ -356,7 +356,7 @@ func ShowDescription(topic string) {
 
 	help, ok := docMap[topic]
 	if !ok {
-		PrintfShadow("Unkown command '%s' type `drive help all` for entire usage documentation", topic)
+		PrintfShadow("Unknown command '%s' type `drive help all` for entire usage documentation", topic)
 		ShowAllDescriptions()
 	} else {
 		description, documentation := help[0], help[1:]

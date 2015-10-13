@@ -238,7 +238,7 @@ Pulling by id is also supported
 $ drive pull --id 0fM9rt0Yc9RTPaDdsNzg1dXVjM0E 0fM9rt0Yc9RTPaTVGc1pzODN1NjQ 0fM9rt0Yc9RTPV1NaNFp5WlV3dlU
 ```
 
-`pull` optionally allows you to pull content upto a desired depth.
+`pull` optionally allows you to pull content up to a desired depth.
 
 Say you would like to get just folder items until the second level
 
@@ -312,7 +312,7 @@ The `push` command uploads data to Google Drive to mirror data stored locally.
 
 Like `pull`, you can run it without any arguments to push all of the files from the current path, or you can pass in one or more paths to push specific files or directories.
 
-`push` also allows you to push content upto a desired traversal depth e.g
+`push` also allows you to push content up to a desired traversal depth e.g
 
 ```shell
 $ drive push --depth 1 head-folders
