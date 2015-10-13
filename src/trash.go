@@ -62,20 +62,20 @@ func (g *Commands) EmptyTrash() error {
 	spin.play()
 	defer spin.stop()
 
-	travSt := traversalSt{
-		depth:            -1,
-		file:             rootFile,
-		headPath:         "/",
-		inTrash:          true,
-		mask:             g.opts.TypeMask,
-		explicitNoPrompt: true,
-	}
-
-	if !g.breadthFirst(travSt, spin) {
-		return nil
-	}
-
 	if g.opts.canPrompt() {
+		travSt := traversalSt{
+			depth:            -1,
+			file:             rootFile,
+			headPath:         "/",
+			inTrash:          true,
+			mask:             g.opts.TypeMask,
+			explicitNoPrompt: true,
+		}
+
+		if !g.breadthFirst(travSt, spin) {
+			return nil
+		}
+
 		g.log.Logln("This operation is irreversible. Empty trash! ")
 
 		if !promptForChanges() {

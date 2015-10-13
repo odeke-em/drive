@@ -16,6 +16,7 @@
 - [Usage](#usage)
   - [Initializing](#initializing)
   - [De Initializing](#de-initializing)
+  - [Traversal Depth](#traversal-depth)
   - [Pulling](#pulling)
     - [Exporting Docs](#exporting-docs)
   - [Pushing](#pushing)
@@ -23,6 +24,7 @@
   - [Unpublishing](#unpublishing)
   - [Sharing and Emailing](#sharing-and-emailing)
   - [Unsharing](#unsharing)
+  - [Diffing](#diffing)
   - [Touching](#touching)
   - [Trashing and Untrashing](#trashing-and-untrashing)
   - [Emptying the Trash](#emptying-the-trash)
@@ -30,6 +32,7 @@
   - [Listing Files](#listing-files)
   - [Stating Files](#stating-files)
   - [Retrieving md5 checksums](#retrieving-md5-checksums)
+  - [Editing Description](#editing-description)
   - [New File](#new-file)
   - [Quota](#quota)
   - [Features](#features)
@@ -41,6 +44,7 @@
   - [DesktopEntry](#desktopentry)
   - [Command Aliases](#command-aliases)
   - [Index Prune](#index-prune)
+  - [Url](#url)
 - [Revoking Account Access](#revoking-account-access)
 - [Uninstalling](#uninstalling)
 - [Applying patches](#applying-patches)
@@ -94,7 +98,7 @@ OR
 To bundle debug information with the binary, you can run:
 
 ```shell
-$ go get -u github.com/odeke-em/drive/drive/drive-gen && drive-gen drive-google
+$ go get -u github.com/odeke-em/drive/drive-gen && drive-gen drive-google
 ```
 
 
@@ -127,7 +131,7 @@ Optionally set the `GOOGLE_API_CLIENT_ID` and `GOOGLE_API_CLIENT_SECRET` environ
 
 ### Initializing
 
-Before you can use `drive`, you need to mount your Google Drive directory on your local file system:
+Before you can use `drive`, you'll need to mount your Google Drive directory on your local file system:
 
 ```shell
 $ drive init ~/gdrive
@@ -142,12 +146,67 @@ The opposite of `drive init`, it will remove your credentials locally as well as
 $ drive deinit [--no-prompt]
 ```
 
-For a complete de-initializing don't forget to revoke account access, [please see revoking account access](#revoking-account-access)
+For a complete deinit-ialization, don't forget to revoke account access, [please see revoking account access](#revoking-account-access)
+
+
+### Traversal Depth
+
+Before talking about the features of drive, it is useful to know about "Traversal Depth".
+
+Throughout this README the usage of the term "Traversal Depth" refers to the number of
+
+nodes/hops/items that it takes to get from one parent to children. In the options that allow it, you'll have a flag option `--depth <n>` where n is an integer
+
+* Traversal terminates on encountering a zero `0` traversal depth.
+
+* A negative depth indicates infinity, so traverse as deep as you can.
+
+* A positive depth helps control the reach.
+
+Given:
+
+	|- A/
+		|- B/
+		|- C/
+			|- C1
+			|- C2
+				|- C10/
+				|- CTX/
+					| - Music
+					| - Summary.txt
+
++ Items on the first level relative to A/ ie `depth 1`, we'll have:
+
+  B, C
+
++ On the third level relative to C/ ie `depth 3`
+
+  * We'll have:
+  
+    Items: Music, Summary.txt
+
+  * The items encountered in `depth 3` traversal relative to C/ are:
+
+				|- C1
+				|- C2
+					|- C10/
+					|- CTX/
+						| - Music
+						| - Summary.txt
+
+
++ No items are within the reach of  `depth -1` relative to B/ since B/ has no children.
+
++ Items within the reach of `depth -` relative to CTX/ are:
+
+				| - Music
+				| - Summary.txt
+
 
 
 ### Pulling
 
-The `pull` command downloads data from Google Drive that does not exist locally, and deletes local data that is not present on Google Drive. 
+The `pull` command downloads data that does not exist locally but does remotely on Google drive, and may delete local data that is not present on Google Drive. 
 Run it without any arguments to pull all of the files from the current path:
 
 ```shell
@@ -177,6 +236,20 @@ Pulling by id is also supported
 
 ```shell
 $ drive pull --id 0fM9rt0Yc9RTPaDdsNzg1dXVjM0E 0fM9rt0Yc9RTPaTVGc1pzODN1NjQ 0fM9rt0Yc9RTPV1NaNFp5WlV3dlU
+```
+
+`pull` optionally allows you to pull content upto a desired depth.
+
+Say you would like to get just folder items until the second level
+
+```shell
+$ drive pull --depth 2 heavy-files summaries
+```
+
+Traverse deep to infinity and beyond
+
+```shell
+$ drive pull --depth -1 all-my-files
 ```
 
 
@@ -212,7 +285,7 @@ To explicitly export instead of using `--force`
 $ drive pull --export pdf,rtf,docx,txt --explicitly-export
 ```
 
-By default, the exported files will be placed in a new directory suffixed by `_exports` in the same path. To export the files to a different directory, use the `-export-dir` option:
+By default, the exported files will be placed in a new directory suffixed by `\_exports` in the same path. To export the files to a different directory, use the `-export-dir` option:
 
 ```shell
 $ drive pull -export pdf,rtf,docx,txt -export-dir ~/Desktop/exports
@@ -239,6 +312,12 @@ The `push` command uploads data to Google Drive to mirror data stored locally.
 
 Like `pull`, you can run it without any arguments to push all of the files from the current path, or you can pass in one or more paths to push specific files or directories.
 
+`push` also allows you to push content upto a desired traversal depth e.g
+
+```shell
+$ drive push --depth 1 head-folders
+```
+
 Note: To ignore checksum verification during a push:
 
 ```shell
@@ -251,8 +330,14 @@ drive also supports pushing content piped from stdin which can be accomplished b
 $ drive push -piped path
 ```
 
+Here is an example using drive to backup the current working directory. It pushes a tar.gz archive created on the fly. No archive file is made on the machine running the command, so it doesn't waste disk space.
+
+```shell
+$ tar czf - . | drive push -piped backup-$(date +"%m-%d-%Y-"%T"").tar.gz
+```
+
 + Note:
-  * In relation to [#107](https://github.com/odeke-em/drive/issues/107) and numerous other issues related to confusion about clashing paths, drive will abort on trying to deal with clashing names. To turn off this safety, pass in flag `--ignore-name-clash`.
+  * In response to [#107](https://github.com/odeke-em/drive/issues/107) and numerous other issues related to confusion about clashing paths, drive can now auto-rename clashing files. Use flag `--fix-clashes` during a `pull` or `push`, and drive will try to rename clashing files by adding a unique suffix at the end of the name, but right before the extension of a file (if the extension exists). If you haven't passed in the above `--fix-clashes` flag, drive will abort on trying to deal with clashing names. If you'd like to turn off this safety, pass in flag `--ignore-name-clashes`
   * In relation to [#57](https://github.com/odeke-em/drive/issues/57) and [@rakyll's #49](https://github.com/rakyll/drive/issues/49).
    A couple of scenarios in which data was getting totally clobbered and unrecoverable, drive now tries to play it safe and warn you if your data could potentially be lost e.g during a to-disk clobber for which you have no backup. At least with a push you have the luxury of untrashing content. To disable this safety, run drive with flag `-ignore-conflict` e.g:
 
@@ -334,6 +419,14 @@ $ drive pull --exclude-ops "delete,update" vines
 $ drive push --exclude-ops "create" sensitive_files
 ```
 
++ To show more information during pushes or pulls e.g show the current operation,
+pass in option `--verbose` e.g:
+
+```shell
+$ drive pull --verbose 2015/Photos content
+$ drive push --verbose Music Fall2014
+```
+
 ### Publishing
 
 The `pub` command publishes a file or directory globally so that anyone can view it on the web using the link returned.
@@ -395,6 +488,22 @@ $ drive unshare -type group mnt/drive
 ```shell
 $ drive unshare --type group --id 0fM9rt0Yc9RTPeHRfRHRRU0dIY97 0fM9rt0Yc9kJRPSTFNk9kSTVvb0U
 ```
+
+### Diffing
+
+The `diff` command compares local files with their remote equivalents. It allows for multiple paths to be passed in e.g
+
+```shell
+$ drive diff changeLogs.log notes sub-folders/
+```
+
+You can diff to a desired depth
+
+```shell
+$ drive diff --depth 2 sub-folders/ contacts/ listings.txt
+```
+
+
 ### Touching
 
 Files that exist remotely can be touched i.e their modification time updated to that on the remote server using the `touch` command:
@@ -453,7 +562,7 @@ $ drive untrash --id 0fM9rt0Yc9RTPeHRfRHRRU0dIY97 0fM9rt0Yc9kJRPSTFNk9kSTVvb0U
 
 ### Emptying the Trash
 
-Emptying the trash will permanently delete all trashed files. They will be unrecoverable using `untrash` after running this command.
+Emptying the trash will permanently delete all trashed files. Caution: They cannot be recovered after running this command.
 
 ```shell
 $ drive emptytrash
@@ -480,9 +589,9 @@ $ drive delete --id 0fM9rt0Yc9RTPeHRfRHRRU0dIY97 0fM9rt0Yc9kJRPSTFNk9kSTVvb0U
 
 ### Listing Files
 
-The `list` command shows a paginated list of paths on the cloud.
+The `list` command shows a paginated list of files present remotely.
 
-Run it without arguments to list all files in the current directory:
+Run it without arguments to list all files in the current directory's remote equivalent:
 
 ```shell
 $ drive list
@@ -589,7 +698,7 @@ Compare across two different Drive accounts, including subfolders
 ~$ diff <(drive md5sum -r MyDrive/folder) <(drive md5sum -r OtherDrive/otherfolder)
 ```
 
-_Note: Running the 'drive md5sum' command retrieves pre-computed md5 sums from Drive; its speed is proportional to the number of files on Drive. Running the shell 'md5sum' command on local files requires reading through the files; its speed is proportional to the size of the files._
+* Note: Running the 'drive md5sum' command retrieves pre-computed md5 sums from Drive; its speed is proportional to the number of files on Drive. Running the shell 'md5sum' command on local files requires reading through the files; its speed is proportional to the size of the files._
 
 
 ### New File
@@ -601,7 +710,25 @@ Sample usage:
 $ drive new --folder flux
 $ drive new --mime-key doc bofx
 $ drive new --mime-key folder content
+$ drive new --mime-key presentation ProjectsPresentation
+$ drive new --mime-key sheet Hours2015Sept
+$ drive new --mime-key form taxForm2016 taxFormCounty
 $ drive new flux.txt oxen.pdf # Allow auto type resolution from the extension
+```
+
+### Editing Description
+
+You can edit the description of a file like this
+
+```shell
+$ drive edit-desc --description "This is a new file description" freshFolders/1.txt commonCore/
+$ drive edit-description --description "This is a new file description" freshFolders/1.txt commonCore/
+```
+
+Even more conveniently by piping content
+
+```shell
+$ cat fileDescriptions | drive edit-desc --piped  targetFile influx/1.txt
 ```
 
 ### Quota
@@ -699,7 +826,7 @@ $ drive move photos/2015 angles library archives/storage
 + Also supports moving by fileId
 
 ```shell
-$ drive rename 0fM9rt0Yc9RTPeHRfRHRRU0dIY97 0fM9rt0Yc9kJRPSTFNk9kSTVvb0U ../../new_location
+$ drive move --id 0fM9rt0Yc9RTPeHRfRHRRU0dIY97 0fM9rt0Yc9kJRPSTFNk9kSTVvb0U ../../new_location
 ```
 
 
@@ -733,6 +860,7 @@ desire the ability to have \*.desktop files that enable the file to be opened ap
 + cp : copy
 + ls : list 
 + mv : move
++ rm : delete
 
 
 ## Index Prune
@@ -767,6 +895,23 @@ To combine both operations (prune and then fetch) for indices:
 $ drive index --all-ops
 ```
 
+## Url
+
+The url command prints out the url of a file. It allows you to specify multiple paths relative to root or even by id
+
+```shell
+$ drive url Photos/2015/07/Releases intros/flux
+$ drive url --id  0Bz5qQkvRAeVEV0JtZl4zVUZFWWx  1Pwu8lzYc9RTPTEpwYjhRMnlSbDQ 0Cz5qUrvDBeX4RUFFbFZ5UXhKZm8
+```
+
+## Open
+
+The open command allows for files to be opened by the default file browser, default web browser, either by path or by id for paths that exist atleast remotely
+
+```shell
+$ drive open --file-browser=false --web-browser f1/f2/f3 jamaican.mp4
+$ drive open --file-browser --id 0Bz8qQkpZAeV9T1PObvs2Y3BMQEj 0Y9jtQkpXAeV9M1PObvs4Y3BNRFk
+```
 
 ### Revoking Account Access
 
@@ -798,28 +943,28 @@ $ go get github.com/odeke-em/drive/cmd/drive
 
 ## Why another Google Drive client?
 
-Background sync is not just hard, it is stupid. My technical and philosophical rants about why it is not worth to implement:
+Background sync is not just hard, it is stupid. Here are my technical and philosophical rants about why it is not worth to implement:
 
-* Too racy. Data has been shared between your remote resource, local disk and sometimes in your sync daemon's in-memory struct. Any party could touch a file any time, hard to lock these actions. You end up working with multiple isolated copies of the same file and trying to determine which is the latest version and should be synced across different contexts.
+* Too racy. Data is shared between your remote resource, local disk and sometimes in your sync daemon's in-memory structs. Any party could touch a file at any time. It is hard to lock these actions. You end up working with multiple isolated copies of the same file and trying to determine which is the latest version that should be synced across different contexts.
 
-* It requires great scheduling to perform best with your existing environmental constraints. On the other hand, file attributes has an impact on the sync strategy. Large files are blocking, you wouldn't like to sit on and wait for a VM image to get synced before you start to work on a tiny text file.
+* It requires great scheduling to perform best with your existing environmental constraints. On the other hand, file attribute have an impact on the sync strategy. Large files block -- you wouldn't like to sit on and wait for a VM image to get synced before you can start working on a tiny text file.
 
-* It needs to read your mind to understand your priorities. Which file you need most? It needs to read your mind to foresee your future actions. I'm editing a file, and saving the changes time to time. Why not to wait until I feel confident enough to commit the changes to the remote resource?
+* It needs to read your mind to understand your priorities. Which file do you need most? It needs to read your mind to foresee your future actions. I'm editing a file, and saving the changes time to time. Why not to wait until I feel confident enough to commit the changes remotely?
 
 `drive` is not a sync daemon, it provides:
 
-* Upstreaming and downstreaming. Unlike a sync command, we provide pull and push actions. User has opportunity to decide what to do with their local copy and when. Do some changes, either push it to remote or revert it to the remote version. Perform these actions with user prompt.
+* Upstreaming and downstreaming. Unlike a sync command, we provide pull and push actions. The user has the opportunity to decide what to do with their local copy and when they decide to. Make some changes, either push the file remotely or revert it to the remote version. You can perform these actions with user prompt:
 
 	    $ echo "hello" > hello.txt
 	    $ drive push # pushes hello.txt to Google Drive
 	    $ echo "more text" >> hello.txt
 	    $ drive pull # overwrites the local changes with the remote version
 
-* Allowing to work with a specific file or directory, optionally not recursively. If you recently uploaded a large VM image to Google Drive, yet  only a few text files are required for you to work, simply only push/pull the file you want to work with.
+* Allowing to work with a specific file or directory, optionally not recursively. If you recently uploaded a large VM image to Google Drive, yet only a few text files are required for you to work, simply only push/pull the exact files you'd like to worth with:
 
 	    $ echo "hello" > hello.txt
 	    $ drive push hello.txt # pushes only the specified file
-	    $ drive pull path/to/a/b # pulls the remote directory recursively
+	    $ drive pull path/to/a/b path2/to/c/d/e # pulls the remote directory recursively
 
 * Better I/O scheduling. One of the major goals is to provide better scheduling to improve upload/download times.
 
@@ -827,10 +972,11 @@ Background sync is not just hard, it is stupid. My technical and philosophical r
 
 ## Known issues
 
-* Probably, it doesn't work on Windows.
+* It probably doesn't work on Windows.
 * Google Drive allows a directory to contain files/directories with the same name. Client doesn't handle these cases yet. We don't recommend you to use `drive` if you have such files/directories to avoid data loss.
 * Racing conditions occur if remote is being modified while we're trying to update the file. Google Drive provides resource versioning with ETags, use Etags to avoid racy cases.
 * drive rejects reading from namedPipes because they could infinitely hang. See [issue #208](https://github.com/odeke-em/drive/issues/208).
+
 
 ## Reach out
 

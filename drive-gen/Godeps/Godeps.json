@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/odeke-em/drive/drive-gen",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "devel +bd1efd5 Fri Jul 31 16:11:21 2015 +0000",
 	"Deps": [
 		{
 			"ImportPath": "github.com/boltdb/bolt",
@@ -12,8 +12,16 @@
 			"Rev": "e3e099c334cd89a6fe993f0683eaafd85604290f"
 		},
 		{
+			"ImportPath": "github.com/google/google-api-go-client/drive/v2",
+			"Rev": "a09229c13c2f13bbdedf7b31b506cad4c83ef3bf"
+		},
+		{
 			"ImportPath": "github.com/mattn/go-isatty",
 			"Rev": "ae0b1f8f8004be68d791a576e3d8e7648ab41449"
+		},
+		{
+			"ImportPath": "github.com/odeke-em/cache",
+			"Rev": "a3d3642de728835b7da7483483ed8cff0cb2796a"
 		},
 		{
 			"ImportPath": "github.com/odeke-em/cli-spinner",
@@ -21,15 +29,11 @@
 		},
 		{
 			"ImportPath": "github.com/odeke-em/command",
-			"Rev": "e193fa4a028b950e8fa1c584458ecc1991d50b52"
+			"Rev": "cf17ee21b576af54d617481549a589567b339795"
 		},
 		{
-			"ImportPath": "github.com/odeke-em/google-api-go-client/drive/v2",
-			"Rev": "0c2625c43fb3afba20032a374accacd47cfa1f0a"
-		},
-		{
-			"ImportPath": "github.com/odeke-em/google-api-go-client/googleapi",
-			"Rev": "0c2625c43fb3afba20032a374accacd47cfa1f0a"
+			"ImportPath": "github.com/odeke-em/exponential-backoff",
+			"Rev": "96e25d36ae36ad09ac02cbfe653b44c4043a8e09"
 		},
 		{
 			"ImportPath": "github.com/odeke-em/log",
@@ -56,36 +60,16 @@
 			"Rev": "8914e5017ca260f2a3a1575b1e6868874050d95e"
 		},
 		{
-			"ImportPath": "golang.org/x/text/collate",
-			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
-		},
-		{
-			"ImportPath": "golang.org/x/text/internal/colltab",
-			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
-		},
-		{
-			"ImportPath": "golang.org/x/text/language",
-			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
-		},
-		{
-			"ImportPath": "golang.org/x/text/transform",
-			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
-		},
-		{
-			"ImportPath": "golang.org/x/text/unicode/norm",
-			"Rev": "3eb7007b740b66a77f3c85f2660a0240b284115a"
-		},
-		{
-			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
-			"Rev": "18450f4e95c7e76ce3a5dc3a8cb7178ab6d56121"
+			"ImportPath": "google.golang.org/api/googleapi",
+			"Rev": "0a735f7ec81c85ce7ec31bf7a67e125ef62266ec"
 		},
 		{
 			"ImportPath": "google.golang.org/cloud/compute/metadata",
-			"Rev": "f925ac6fddb170ae890f5cf83fb6cdb0bbdd0a9e"
+			"Rev": "e34a32f9b0ecbc0784865fb2d47f3818c09521d4"
 		},
 		{
 			"ImportPath": "google.golang.org/cloud/internal",
-			"Rev": "f925ac6fddb170ae890f5cf83fb6cdb0bbdd0a9e"
+			"Rev": "e34a32f9b0ecbc0784865fb2d47f3818c09521d4"
 		}
 	]
 }

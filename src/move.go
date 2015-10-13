@@ -25,13 +25,15 @@ type moveOpt struct {
 	byId bool
 }
 
-func (g *Commands) Move(byId bool) (err error) {
+func (g *Commands) Move(byId bool) error {
 	argc := len(g.opts.Sources)
 	if argc < 2 {
 		return fmt.Errorf("move: expected <src> [src...] <dest>, instead got: %v", g.opts.Sources)
 	}
 
 	rest, dest := g.opts.Sources[:argc-1], g.opts.Sources[argc-1]
+
+	var composedError error = nil
 
 	for _, src := range rest {
 		prefix := commonPrefix(src, dest)
@@ -47,14 +49,13 @@ func (g *Commands) Move(byId bool) (err error) {
 			byId: byId,
 		}
 
-		err = g.move(&opt)
-		if err != nil {
-			// TODO: Actually throw the error? Impact on UX if thrown?
-			fmt.Printf("move: %s: %v\n", src, err)
+		if err := g.move(&opt); err != nil {
+			message := fmt.Sprintf("move: %s: %v", src, err)
+			composedError = reComposeError(composedError, message)
 		}
 	}
 
-	return nil
+	return composedError
 }
 
 func (g *Commands) move(opt *moveOpt) (err error) {

@@ -33,6 +33,7 @@ var (
 
 	ErrNoDriveContext      = errors.New("no drive context found; run `drive init` or go into one of the directories (sub directories) that you performed `drive init`")
 	ErrDerefNilIndex       = errors.New("cannot dereference a nil index")
+	ErrDerefNilDB          = errors.New("cannot dereference a nil db")
 	ErrEmptyFileIdForIndex = errors.New("fileId for index must be non-empty")
 	ErrNoSuchDbKey         = errors.New("no such db key exists")
 	ErrNoSuchDbBucket      = errors.New("no such bucket exists")
@@ -110,14 +111,14 @@ func (c *Context) DeserializeIndex(key string) (*Index, error) {
 		return nil, creationErr
 	}
 
-	var data []byte
-
-	dbPath := DbSuffixedPath(c.AbsPathOf(""))
-	db, err := bolt.Open(dbPath, O_RWForAll, nil)
+	db, err := c.OpenDB()
 	if err != nil {
 		return nil, err
 	}
+
 	defer db.Close()
+
+	var data []byte
 
 	err = db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(byteify(IndicesKey))
@@ -149,8 +150,7 @@ func (c *Context) ListKeys(dir, bucketName string) (chan string, error) {
 		return keysChan, creationErr
 	}
 
-	dbPath := DbSuffixedPath(c.AbsPathOf(""))
-	db, err := bolt.Open(dbPath, O_RWForAll, nil)
+	db, err := c.OpenDB()
 	if err != nil {
 		close(keysChan)
 		return keysChan, err
@@ -158,8 +158,8 @@ func (c *Context) ListKeys(dir, bucketName string) (chan string, error) {
 
 	go func() {
 		defer func() {
-			close(keysChan)
 			db.Close()
+			close(keysChan)
 		}()
 
 		db.View(func(tx *bolt.Tx) error {
@@ -186,12 +186,10 @@ func (c *Context) PopIndicesKey(key string) error {
 }
 
 func (c *Context) popDbKey(bucketName, key string) error {
-	dbPath := DbSuffixedPath(c.AbsPathOf(""))
-	db, err := bolt.Open(dbPath, O_RWForAll, nil)
+	db, err := c.OpenDB()
 	if err != nil {
 		return err
 	}
-
 	defer db.Close()
 
 	return db.Update(func(tx *bolt.Tx) error {
@@ -215,8 +213,7 @@ func (c *Context) RemoveIndex(index *Index, p string) error {
 		return ErrEmptyFileIdForIndex
 	}
 
-	dbPath := DbSuffixedPath(c.AbsPathOf(""))
-	db, err := bolt.Open(dbPath, O_RWForAll, nil)
+	db, err := c.OpenDB()
 	if err != nil {
 		return err
 	}
@@ -235,8 +232,7 @@ func (c *Context) RemoveIndex(index *Index, p string) error {
 }
 
 func (c *Context) CreateIndicesBucket() error {
-	dbPath := DbSuffixedPath(c.AbsPathOf(""))
-	db, err := bolt.Open(dbPath, O_RWForAll, nil)
+	db, err := c.OpenDB()
 	if err != nil {
 		return err
 	}
@@ -256,12 +252,13 @@ func (c *Context) CreateIndicesBucket() error {
 
 func (c *Context) SerializeIndex(index *Index) (err error) {
 	var data []byte
+	var db *bolt.DB
+
 	if data, err = json.Marshal(index); err != nil {
 		return
 	}
 
-	dbPath := DbSuffixedPath(c.AbsPathOf(""))
-	db, err := bolt.Open(dbPath, O_RWForAll, nil)
+	db, err = c.OpenDB()
 	if err != nil {
 		return err
 	}
@@ -311,6 +308,21 @@ func (c *Context) DeInitialize(prompter func(...interface{}) bool, returnOnAnyEr
 	return nil
 }
 
+func (c *Context) OpenDB() (db *bolt.DB, err error) {
+	dbPath := DbSuffixedPath(c.AbsPathOf(""))
+	db, err = bolt.Open(dbPath, O_RWForAll, nil)
+
+	if err != nil {
+		return db, err
+	}
+
+	if db == nil {
+		return db, ErrDerefNilDB
+	}
+
+	return db, nil
+}
+
 // Discovers the gd directory, if no gd directory or credentials
 // could be found for the path, returns ErrNoContext.
 func Discover(currentAbsPath string) (context *Context, err error) {
@@ -322,7 +334,7 @@ func Discover(currentAbsPath string) (context *Context, err error) {
 			found = true
 			break
 		}
-		newPath := path.Join(p, "..")
+		newPath := filepath.Join(p, "..")
 		if p == newPath {
 			break
 		}

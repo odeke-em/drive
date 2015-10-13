@@ -24,6 +24,7 @@ import (
 
 	"github.com/cheggaaa/pb"
 	"github.com/mattn/go-isatty"
+	expirable "github.com/odeke-em/cache"
 	"github.com/odeke-em/drive/config"
 	"github.com/odeke-em/log"
 )
@@ -84,6 +85,8 @@ type Options struct {
 	ExplicitlyExport  bool
 	Md5sum            bool
 	indexingOnly      bool
+	Verbose           bool
+	FixClashes        bool
 }
 
 type Commands struct {
@@ -92,7 +95,8 @@ type Commands struct {
 	opts    *Options
 	log     *log.Logger
 
-	progress *pb.ProgressBar
+	progress      *pb.ProgressBar
+	mkdirAllCache *expirable.OperationCache
 }
 
 func (opts *Options) canPrompt() bool {
@@ -138,10 +142,11 @@ func New(context *config.Context, opts *Options) *Commands {
 	}
 
 	return &Commands{
-		context: context,
-		rem:     r,
-		opts:    opts,
-		log:     logger,
+		context:       context,
+		rem:           r,
+		opts:          opts,
+		log:           logger,
+		mkdirAllCache: expirable.New(),
 	}
 }
 

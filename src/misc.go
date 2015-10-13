@@ -16,15 +16,24 @@ package drive
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"google.golang.org/api/googleapi"
+
 	spinner "github.com/odeke-em/cli-spinner"
+	"github.com/odeke-em/drive/config"
 )
 
 const (
@@ -33,6 +42,12 @@ const (
 
 	FmtTimeString = "2006-01-02T15:04:05.000Z"
 )
+
+const (
+	MaxFailedRetryCount = uint32(20) // Arbitrary value
+)
+
+var DefaultMaxProcs = runtime.NumCPU()
 
 var BytesPerKB = float64(1024)
 
@@ -50,6 +65,55 @@ type playable struct {
 }
 
 func noop() {
+}
+
+type tuple struct {
+	first  interface{}
+	second interface{}
+	last   interface{}
+}
+
+func retryableErrorCheck(v interface{}) (ok, retryable bool) {
+	pr, pOk := v.(*tuple)
+	if pr == nil || !pOk {
+		retryable = true
+		return
+	}
+
+	if pr.last == nil {
+		ok = true
+		return
+	}
+
+	err, assertOk := pr.last.(*googleapi.Error)
+	// In relation to https://github.com/google/google-api-go-client/issues/93
+	// where not every error is of googleapi.Error instance e.g io timeout errors
+	// etc, let's assume that non-nil errors are retryable
+
+	if !assertOk {
+		retryable = true
+		return
+	}
+
+	if err == nil {
+		ok = true
+		return
+	}
+
+	statusCode := err.Code
+	if statusCode >= 500 && statusCode <= 599 {
+		retryable = true
+		return
+	}
+
+	switch statusCode {
+	case 401, 403:
+		retryable = true
+
+		// TODO: Add other errors
+	}
+
+	return
 }
 
 func noopPlayable() *playable {
@@ -292,20 +356,10 @@ func ReadFullFile(p string) (clauses []string, err error) {
 	return readFile_(p, nil)
 }
 
-func readFile_(p string, ignorer func(string) bool) (clauses []string, err error) {
-	f, fErr := os.Open(p)
-	if fErr != nil || f == nil {
-		err = fErr
-		return
-	}
-
-	defer f.Close()
+func fReadFile_(f io.Reader, ignorer func(string) bool) (clauses []string, err error) {
 	scanner := bufio.NewScanner(f)
 
-	for {
-		if !scanner.Scan() {
-			break
-		}
+	for scanner.Scan() {
 		line := scanner.Text()
 		line = strings.Trim(line, " ")
 		line = strings.Trim(line, "\n")
@@ -314,6 +368,25 @@ func readFile_(p string, ignorer func(string) bool) (clauses []string, err error
 		}
 		clauses = append(clauses, line)
 	}
+
+	return
+}
+
+func readFileFromStdin(ignorer func(string) bool) (clauses []string, err error) {
+	return fReadFile_(os.Stdin, ignorer)
+}
+
+func readFile_(p string, ignorer func(string) bool) (clauses []string, err error) {
+	f, fErr := os.Open(p)
+	if fErr != nil || f == nil {
+		err = fErr
+		return
+	}
+
+	defer f.Close()
+
+	clauses, err = fReadFile_(f, ignorer)
+
 	return
 }
 
@@ -369,7 +442,7 @@ func NonEmptyTrimmedStrings(v ...string) (splits []string) {
 }
 
 var regExtStrMap = map[string]string{
-	"csv":   "text/csv",
+	"csv":   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	"html?": "text/html",
 	"te?xt": "text/plain",
 	"xml":   "text/xml",
@@ -408,7 +481,8 @@ var regExtStrMap = map[string]string{
 	"mp3": "audio/mpeg",
 
 	"docx?": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-	"pptx?": "application/vnd.openxmlformats-officedocument.wordprocessingml.presentation",
+	"pptx?": "application/vnd.ms-powerpoint",
+	"tsv":   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	"xlsx?": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 }
 
@@ -465,13 +539,13 @@ func anyMatch(pat *regexp.Regexp, args ...string) bool {
 }
 
 var mimeTypeFromQuery = cacher(regMapper(regExtStrMap, map[string]string{
-	"docs":         "application/vnd.google-apps.document",
-	"folder":       DriveFolderMimeType,
-	"form":         "application/vnd.google-apps.form",
-	"mp4":          "video/mp4",
-	"presentation": "application/vnd.google-apps.presentation",
-	"sheet":        "application/vnd.google-apps.spreadsheet",
-	"script":       "application/vnd.google-apps.script",
+	"docs":   "application/vnd.google-apps.document",
+	"folder": DriveFolderMimeType,
+	"form":   "application/vnd.google-apps.form",
+	"mp4":    "video/mp4",
+	"slides?|presentation": "application/vnd.google-apps.presentation",
+	"sheet":                "application/vnd.google-apps.spreadsheet",
+	"script":               "application/vnd.google-apps.script",
 }))
 
 var mimeTypeFromExt = cacher(regMapper(regExtStrMap))
@@ -525,6 +599,191 @@ func _hasAnyAtExtreme(value string, fn func(string, string) bool, queries []stri
 	return false
 }
 
+func maxProcs() int {
+	maxProcs, err := strconv.ParseInt(os.Getenv(DriveGoMaxProcsKey), 10, 0)
+	if err != nil {
+		return DefaultMaxProcs
+	}
+
+	maxProcsInt := int(maxProcs)
+	if maxProcsInt < 1 {
+		return DefaultMaxProcs
+	}
+
+	return maxProcsInt
+}
+
 func customQuote(s string) string {
 	return "\"" + strings.Replace(strings.Replace(s, "\\", "\\\\", -1), "\"", "\\\"", -1) + "\""
+}
+
+type expirableCacheValue struct {
+	value     interface{}
+	entryTime time.Time
+}
+
+func (e *expirableCacheValue) Expired(q time.Time) bool {
+	if e == nil {
+		return true
+	}
+
+	return e.entryTime.Before(q)
+}
+
+func (e *expirableCacheValue) Value() interface{} {
+	if e == nil {
+		return nil
+	}
+
+	return e.value
+}
+
+func newExpirableCacheValueWithOffset(v interface{}, offset time.Duration) *expirableCacheValue {
+	return &expirableCacheValue{
+		value:     v,
+		entryTime: time.Now().Add(offset),
+	}
+}
+
+var newExpirableCacheValue = func(v interface{}) *expirableCacheValue {
+	return newExpirableCacheValueWithOffset(v, time.Hour)
+}
+
+func reComposeError(prevErr error, messages ...string) error {
+	if len(messages) < 1 {
+		return prevErr
+	}
+
+	joinedMessage := messages[0]
+	for i, n := 1, len(messages); i < n; i++ {
+		joinedMessage = fmt.Sprintf("%s\n%s", joinedMessage, messages[i])
+	}
+
+	if prevErr == nil {
+		if len(joinedMessage) < 1 {
+			return nil
+		}
+	} else {
+		joinedMessage = fmt.Sprintf("%v\n%s", prevErr, joinedMessage)
+	}
+
+	return errors.New(joinedMessage)
+}
+
+func decrementTraversalDepth(d int) int {
+	// Anything less than 0 is a request for infinite traversal
+	// 0 is the minimum positive traversal
+	if d <= 0 {
+		return d
+	}
+
+	return d - 1
+}
+
+type fsListingArg struct {
+	context *config.Context
+	parent  string
+	hidden  bool
+	ignore  *regexp.Regexp
+	depth   int
+}
+
+func list(flArg *fsListingArg) (fileChan chan *File, err error) {
+	context := flArg.context
+	p := flArg.parent
+	hidden := flArg.hidden
+	ignore := flArg.ignore
+	depth := flArg.depth
+
+	absPath := context.AbsPathOf(p)
+	var f []os.FileInfo
+	f, err = ioutil.ReadDir(absPath)
+	fileChan = make(chan *File)
+	if err != nil {
+		close(fileChan)
+		return
+	}
+
+	go func() {
+		defer close(fileChan)
+
+		depth = decrementTraversalDepth(depth)
+		if depth == 0 {
+			return
+		}
+
+		for _, file := range f {
+			fileName := file.Name()
+			if fileName == config.GDDirSuffix {
+				continue
+			}
+			if isHidden(fileName, hidden) {
+				continue
+			}
+
+			resPath := path.Join(absPath, fileName)
+			if anyMatch(ignore, fileName, resPath) {
+				continue
+			}
+
+			// TODO: (@odeke-em) decide on how to deal with isFifo
+			if namedPipe(file.Mode()) {
+				fmt.Fprintf(os.Stderr, "%s (%s) is a named pipe, not reading from it\n", p, resPath)
+				continue
+			}
+
+			if !symlink(file.Mode()) {
+				fileChan <- NewLocalFile(resPath, file)
+			} else {
+				var symResolvPath string
+				symResolvPath, err = filepath.EvalSymlinks(resPath)
+				if err != nil {
+					continue
+				}
+
+				if anyMatch(ignore, symResolvPath) {
+					continue
+				}
+
+				var symInfo os.FileInfo
+				symInfo, err = os.Stat(symResolvPath)
+				if err != nil {
+					continue
+				}
+
+				lf := NewLocalFile(symResolvPath, symInfo)
+				// Retain the original name as appeared in
+				// the manifest instead of the resolved one
+				lf.Name = fileName
+				fileChan <- lf
+			}
+		}
+	}()
+	return
+}
+
+func resolver(g *Commands, byId bool, sources []string, fileOp func(*File) interface{}) (kvChan chan *keyValue) {
+	resolve := g.rem.FindByPath
+	if byId {
+		resolve = g.rem.FindById
+	}
+
+	kvChan = make(chan *keyValue)
+
+	go func() {
+		defer close(kvChan)
+
+		for _, source := range sources {
+			f, err := resolve(source)
+
+			kv := keyValue{key: source, value: err}
+			if err == nil {
+				kv.value = fileOp(f)
+			}
+
+			kvChan <- &kv
+		}
+	}()
+
+	return kvChan
 }

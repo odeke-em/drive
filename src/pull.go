@@ -22,14 +22,14 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"sync"
+	"strings"
 
 	"github.com/odeke-em/drive/config"
 	"github.com/odeke-em/statos"
 )
 
-const (
-	maxNumOfConcPullTasks = 4
+var (
+	maxConcPulls = DefaultMaxProcs
 )
 
 type urlMimeTypeExt struct {
@@ -52,8 +52,16 @@ func (g *Commands) Pull(byId bool) error {
 	cl, clashes, err := pullLikeResolve(g, byId)
 
 	if len(clashes) >= 1 {
-		warnClashesPersist(g.log, clashes)
-		return ErrClashesDetected
+		if !g.opts.FixClashes {
+			warnClashesPersist(g.log, clashes)
+			return ErrClashesDetected
+		} else {
+			err := autoRenameClashes(g, clashes)
+			if err == nil {
+				g.log.Logln("Clashes were fixed, try pushing again.")
+			}
+			return err
+		}
 	}
 
 	if err != nil {
@@ -81,6 +89,77 @@ func (g *Commands) Pull(byId bool) error {
 	}
 
 	return g.playPullChanges(nonConflicts, g.opts.Exports, opMap)
+}
+
+func autoRenameClashes(g *Commands, clashes []*Change) error {
+	type renameOp struct {
+		newName      string
+		change       *Change
+		originalPath string
+	}
+	clashesMap := map[string][]*Change{}
+
+	for _, clash := range clashes {
+		group := clashesMap[clash.Path]
+		if clash.Src == nil {
+			continue
+		}
+		clashesMap[clash.Path] = append(group, clash)
+	}
+
+	renames := make([]renameOp, 0, len(clashesMap)) // we will have at least len(clashesMap) renames
+
+	for commonPath, group := range clashesMap {
+		ext := filepath.Ext(commonPath)
+		name := strings.TrimSuffix(commonPath, ext)
+		nextIndex := 0
+
+		for i, n := 1, len(group); i < n; i++ { // we can leave first item with original name
+			var newName string
+			for {
+				newName = fmt.Sprintf("%v_%d%v", name, nextIndex, ext)
+				nextIndex++
+
+				dupCheck, err := g.rem.FindByPath(newName)
+				if err != nil && err != ErrPathNotExists {
+					return err
+				}
+
+				if dupCheck == nil {
+					newName = filepath.Base(newName)
+					break
+				}
+			}
+
+			r := renameOp{newName: newName, change: group[i], originalPath: commonPath}
+			renames = append(renames, r)
+		}
+	}
+
+	if g.opts.canPrompt() {
+		g.log.Logln("Some clashes found, we can fix them by following renames:")
+		for _, r := range renames {
+			g.log.Logf("%v %v -> %v\n", r.originalPath, r.change.Src.Id, r.newName)
+		}
+		if !promptForChanges("Proceed with the changes [Y/N] ? ") {
+			return ErrClashesDetected
+		}
+	}
+
+	var composedError error
+
+	for _, r := range renames {
+		message := fmt.Sprintf("Renaming %s %v -> %s\n", r.originalPath, r.change.Src.Id, r.newName)
+		_, err := g.rem.rename(r.change.Src.Id, r.newName)
+		if err == nil {
+			g.log.Log(message)
+			continue
+		}
+
+		composedError = reComposeError(composedError, fmt.Sprintf("%s err: %v", message, err))
+	}
+
+	return composedError
 }
 
 func pullLikeResolve(g *Commands, byId bool) (cl, clashes []*Change, err error) {
@@ -117,8 +196,8 @@ func pullLikeMatchesResolver(g *Commands) (cl, clashes []*Change, err error) {
 		p = ""
 	}
 
-	combiner := func(from []*Change, to *[]*Change, done chan bool) {
-		*to = append(*to, from...)
+	combiner := func(from, to *[]*Change, done chan bool) {
+		*to = append(*to, *from...)
 		done <- true
 	}
 
@@ -126,7 +205,7 @@ func pullLikeMatchesResolver(g *Commands) (cl, clashes []*Change, err error) {
 		if match == nil {
 			continue
 		}
-		relToRoot := "/" + match.Name
+		relToRoot := filepath.Join(g.opts.Path, match.Name)
 		fsPath := g.context.AbsPathOf(relToRoot)
 
 		ccl, cclashes, cErr := g.byRemoteResolve(relToRoot, fsPath, match, false)
@@ -135,12 +214,24 @@ func pullLikeMatchesResolver(g *Commands) (cl, clashes []*Change, err error) {
 			return
 		}
 
-		done := make(chan bool, 2)
-		go combiner(ccl, &cl, done)
-		go combiner(cclashes, &clashes, done)
+		combines := []struct {
+			from, to *[]*Change
+		}{
+			{from: &ccl, to: &cl},
+			{from: &cclashes, to: &clashes},
+		}
 
-		<-done
-		<-done
+		nCombines := len(combines)
+		done := make(chan bool, nCombines)
+
+		for i := 0; i < nCombines; i++ {
+			curCombine := combines[i]
+			go combiner(curCombine.from, curCombine.to, done)
+		}
+
+		for i := 0; i < nCombines; i++ {
+			<-done
+		}
 	}
 
 	return
@@ -159,7 +250,7 @@ func (g *Commands) PullMatches() (err error) {
 	}
 
 	if len(cl) < 1 {
-		return fmt.Errorf("no changes detected!")
+		return nil
 	}
 
 	nonConflictsPtr, conflictsPtr := g.resolveConflicts(cl, false)
@@ -286,8 +377,6 @@ func (g *Commands) pullAndDownload(relToRootPath string, fh io.Writer, rem *File
 }
 
 func (g *Commands) playPullChanges(cl []*Change, exports []string, opMap *map[Operation]sizeCounter) (err error) {
-	var next []*Change
-
 	if opMap == nil {
 		result := opChangeCount(cl)
 		opMap = &result
@@ -314,31 +403,39 @@ func (g *Commands) playPullChanges(cl []*Change, exports []string, opMap *map[Op
 		}
 	}()
 
-	for {
-		if len(cl) > maxNumOfConcPullTasks {
-			next, cl = cl[:maxNumOfConcPullTasks], cl[maxNumOfConcPullTasks:len(cl)]
-		} else {
-			next, cl = cl, []*Change{}
-		}
-		if len(next) == 0 {
-			break
-		}
-		var wg sync.WaitGroup
-		wg.Add(len(next))
+	nMax := len(cl)
+	doneAck := make(chan bool)
 
-		// play the changes
-		// TODO: add timeouts
+	maxConcPulls := maxProcs()
 
-		for i, c := range next {
+	loader := make(chan *Change, maxConcPulls)
+	waiter := make(chan bool, maxConcPulls)
+
+	for i := 0; i < maxConcPulls; i++ {
+		waiter <- true
+	}
+
+	go func() {
+		defer close(loader)
+
+		for _, c := range cl {
 			if c == nil {
-				g.log.LogErrf("BUGON:: pull: nil change found for change index %d\n", i)
+				doneAck <- true
 				continue
 			}
 
-			var fn func(*sync.WaitGroup, *Change, []string) error = nil
+			<-waiter
+			loader <- c
+		}
+	}()
 
-			op := c.Op()
+	canPrintSteps := g.opts.Verbose && g.opts.canPrompt()
 
+	go func() {
+		for ch := range loader {
+			var fn func(*Change, []string) error = nil
+
+			op := ch.Op()
 			switch op {
 			case OpMod:
 				fn = g.localMod
@@ -354,24 +451,39 @@ func (g *Commands) playPullChanges(cl []*Change, exports []string, opMap *map[Op
 
 			if fn == nil {
 				g.log.LogErrf("pull: cannot find operator for %v", op)
+				doneAck <- true
+				waiter <- true
 				continue
 			}
 
-			go func(wgg *sync.WaitGroup, ch *Change, exportArgs []string) {
-				if err := fn(wgg, ch, exportArgs); err != nil {
-					g.log.LogErrf("pull: %s err: %v\n", ch.Path, err)
+			go func(c *Change, f func(*Change, []string) error) {
+				if canPrintSteps {
+					g.log.Logln("\033[01mPull::Started", c.Path, "\033[00m")
 				}
-			}(&wg, c, exports)
-		}
 
-		wg.Wait()
+				if err := f(c, exports); err != nil {
+					g.log.LogErrf("pull: %s err: %v\n", c.Path, err)
+				}
+
+				if canPrintSteps {
+					g.log.Logln("\033[04mPull::Done", c.Path, "\033[00m")
+				}
+
+				doneAck <- true
+				waiter <- true
+			}(ch, fn)
+		}
+	}()
+
+	for i := 0; i < nMax; i++ {
+		<-doneAck
 	}
 
 	g.taskFinish()
 	return err
 }
 
-func (g *Commands) localAddIndex(wg *sync.WaitGroup, change *Change, conform []string) (err error) {
+func (g *Commands) localAddIndex(change *Change, conform []string) (err error) {
 	f := change.Src
 	defer func() {
 		if f != nil {
@@ -380,13 +492,12 @@ func (g *Commands) localAddIndex(wg *sync.WaitGroup, change *Change, conform []s
 				g.rem.progressChan <- n
 			}
 		}
-		wg.Done()
 	}()
 
 	return g.createIndex(f)
 }
 
-func (g *Commands) localMod(wg *sync.WaitGroup, change *Change, exports []string) (err error) {
+func (g *Commands) localMod(change *Change, exports []string) (err error) {
 	defer func() {
 		if err == nil {
 			src := change.Src
@@ -396,7 +507,6 @@ func (g *Commands) localMod(wg *sync.WaitGroup, change *Change, exports []string
 				g.log.LogErrf("localMod:createIndex %s: %v\n", src.Name, indexErr)
 			}
 		}
-		wg.Done()
 	}()
 
 	destAbsPath := g.context.AbsPathOf(change.Path)
@@ -427,7 +537,7 @@ func (g *Commands) localMod(wg *sync.WaitGroup, change *Change, exports []string
 	return
 }
 
-func (g *Commands) localAdd(wg *sync.WaitGroup, change *Change, exports []string) (err error) {
+func (g *Commands) localAdd(change *Change, exports []string) (err error) {
 	defer func() {
 		if err == nil && change.Src != nil {
 			fileToSerialize := change.Src
@@ -438,7 +548,6 @@ func (g *Commands) localAdd(wg *sync.WaitGroup, change *Change, exports []string
 				g.log.LogErrf("localAdd:createIndex %s: %v\n", fileToSerialize.Name, indexErr)
 			}
 		}
-		wg.Done()
 	}()
 
 	destAbsPath := g.context.AbsPathOf(change.Path)
@@ -454,7 +563,11 @@ func (g *Commands) localAdd(wg *sync.WaitGroup, change *Change, exports []string
 	}
 
 	if change.Src.IsDir {
-		return os.Mkdir(destAbsPath, os.ModeDir|0755)
+		err = os.Mkdir(destAbsPath, os.ModeDir|0755)
+		if os.IsExist(err) {
+			err = nil
+		}
+		return err
 	}
 
 	// download and create
@@ -466,7 +579,7 @@ func (g *Commands) localAdd(wg *sync.WaitGroup, change *Change, exports []string
 	return
 }
 
-func (g *Commands) localDelete(wg *sync.WaitGroup, change *Change, conform []string) (err error) {
+func (g *Commands) localDelete(change *Change, conform []string) (err error) {
 	defer func() {
 		if err == nil {
 			chunks := chunkInt64(change.Dest.Size)
@@ -482,7 +595,6 @@ func (g *Commands) localDelete(wg *sync.WaitGroup, change *Change, conform []str
 				g.log.LogErrf("localDelete removing index for: \"%s\" at \"%s\" %v\n", dest.Name, dest.BlobAt, rmErr)
 			}
 		}
-		wg.Done()
 	}()
 
 	err = os.RemoveAll(change.Dest.BlobAt)
@@ -533,16 +645,16 @@ func (g *Commands) export(f *File, destAbsPath string, exports []string) (manife
 		})
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len(waitables))
+	n := len(waitables)
+	doneAck := make(chan bool, n)
 
 	basePath := filepath.Base(f.Name)
 	baseDir := path.Join(dirPath, basePath)
 
 	for _, exportee := range waitables {
-		go func(wg *sync.WaitGroup, baseDirPath, id string, urlMExt *urlMimeTypeExt) error {
+		go func(baseDirPath, id string, urlMExt *urlMimeTypeExt) error {
 			defer func() {
-				wg.Done()
+				doneAck <- true
 			}()
 
 			exportPath := sepJoin(".", baseDirPath, urlMExt.ext)
@@ -568,10 +680,15 @@ func (g *Commands) export(f *File, destAbsPath string, exports []string) (manife
 			if err == nil {
 				manifest = append(manifest, exportPath)
 			}
+
 			return err
-		}(&wg, baseDir, f.Id, exportee)
+		}(baseDir, f.Id, exportee)
 	}
-	wg.Wait()
+
+	for i := 0; i < n; i++ {
+		<-doneAck
+	}
+
 	return
 }
 
@@ -598,52 +715,47 @@ func (g *Commands) download(change *Change, exports []string) (err error) {
 
 	// We need to touch the empty file to
 	// ensure consistency during a push.
-	err = touchFile(destAbsPath)
-	if err != nil {
+	if err = touchFile(destAbsPath); err != nil {
 		return err
 	}
 
-	if runtime.GOOS != OSLinuxKey {
+	// For our Linux kin that need .desktop files
+	if runtime.GOOS == OSLinuxKey {
+		f := change.Src
+
+		urlMExt := urlMimeTypeExt{
+			url:      f.AlternateLink,
+			ext:      "",
+			mimeType: f.MimeType,
+		}
+
+		desktopEntryPath := sepJoin(".", destAbsPath, DesktopExtension)
+
+		_, dentErr := f.serializeAsDesktopEntry(desktopEntryPath, &urlMExt)
+		if dentErr != nil {
+			g.log.LogErrf("desktopEntry: %s %v\n", desktopEntryPath, dentErr)
+		}
+	}
+
+	canExport := len(exports) >= 1 && hasExportLinks(change.Src)
+	if !canExport {
 		return nil
 	}
 
-	// For those our Linux kin that need .desktop files
-	dirPath := g.opts.ExportsDir
-	if dirPath == "" {
-		dirPath = filepath.Dir(destAbsPath)
+	exportDirPath := destAbsPath
+	if g.opts.ExportsDir != "" {
+		exportDirPath = path.Join(g.opts.ExportsDir, change.Src.Name)
 	}
 
-	f := change.Src
+	manifest, exportErr := g.export(change.Src, exportDirPath, exports)
 
-	urlMExt := urlMimeTypeExt{
-		url:      f.AlternateLink,
-		ext:      "",
-		mimeType: f.MimeType,
-	}
-
-	dirPath = filepath.Join(dirPath, f.Name)
-	desktopEntryPath := sepJoin(".", dirPath, DesktopExtension)
-
-	_, dentErr := f.serializeAsDesktopEntry(desktopEntryPath, &urlMExt)
-	if dentErr != nil {
-		g.log.LogErrf("desktopEntry: %s %v\n", desktopEntryPath, dentErr)
-	}
-
-	if len(exports) >= 1 && hasExportLinks(change.Src) {
-		exportDirPath := destAbsPath
-		if g.opts.ExportsDir != "" {
-			exportDirPath = path.Join(g.opts.ExportsDir, change.Src.Name)
+	if exportErr == nil {
+		for _, exportPath := range manifest {
+			g.log.Logf("Exported '%s' to '%s'\n", destAbsPath, exportPath)
 		}
-
-		manifest, exportErr := g.export(change.Src, exportDirPath, exports)
-		if exportErr == nil {
-			for _, exportPath := range manifest {
-				g.log.Logf("Exported '%s' to '%s'\n", destAbsPath, exportPath)
-			}
-		}
-		return exportErr
 	}
-	return
+
+	return exportErr
 }
 
 func (g *Commands) singleDownload(dlArg *downloadArg) (err error) {

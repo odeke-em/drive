@@ -16,40 +16,49 @@ package drive
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"sort"
+	"strings"
+
+	prettywords "github.com/odeke-em/pretty-words"
 )
 
 const (
-	AboutKey      = "about"
-	AllKey        = "all"
-	CopyKey       = "copy"
-	DeleteKey     = "delete"
-	DiffKey       = "diff"
-	EmptyTrashKey = "emptytrash"
-	FeaturesKey   = "features"
-	HelpKey       = "help"
-	InitKey       = "init"
-	DeInitKey     = "deinit"
-	LinkKey       = "Link"
-	ListKey       = "list"
-	MoveKey       = "move"
-	OSLinuxKey    = "linux"
-	PullKey       = "pull"
-	PushKey       = "push"
-	PubKey        = "pub"
-	RenameKey     = "rename"
-	QuotaKey      = "quota"
-	ShareKey      = "share"
-	StatKey       = "stat"
-	TouchKey      = "touch"
-	TrashKey      = "trash"
-	UnshareKey    = "unshare"
-	UntrashKey    = "untrash"
-	UnpubKey      = "unpub"
-	VersionKey    = "version"
-	Md5sumKey     = "md5sum"
-	NewKey        = "new"
-	IndexKey      = "index"
-	PruneKey      = "prune"
+	AboutKey                = "about"
+	AllKey                  = "all"
+	CopyKey                 = "copy"
+	DeleteKey               = "delete"
+	EditDescriptionKey      = "edit-description"
+	EditDescriptionShortKey = "edit-desc"
+	DiffKey                 = "diff"
+	EmptyTrashKey           = "emptytrash"
+	FeaturesKey             = "features"
+	HelpKey                 = "help"
+	InitKey                 = "init"
+	DeInitKey               = "deinit"
+	LinkKey                 = "Link"
+	ListKey                 = "list"
+	MoveKey                 = "move"
+	OSLinuxKey              = "linux"
+	PipedKey                = "piped"
+	PullKey                 = "pull"
+	PushKey                 = "push"
+	PubKey                  = "pub"
+	RenameKey               = "rename"
+	QuotaKey                = "quota"
+	ShareKey                = "share"
+	StatKey                 = "stat"
+	TouchKey                = "touch"
+	TrashKey                = "trash"
+	UnshareKey              = "unshare"
+	UntrashKey              = "untrash"
+	UnpubKey                = "unpub"
+	VersionKey              = "version"
+	Md5sumKey               = "md5sum"
+	NewKey                  = "new"
+	IndexKey                = "index"
+	PruneKey                = "prune"
 
 	CoercedMimeKeyKey     = "coerced-mime"
 	DepthKey              = "depth"
@@ -66,6 +75,7 @@ const (
 	NoPromptKey           = "no-prompt"
 	SizeKey               = "size"
 	NameKey               = "name"
+	OpenKey               = "open"
 	OriginalNameKey       = "oname"
 	ModTimeKey            = "modt"
 	LastViewedByMeTimeKey = "lvt"
@@ -82,6 +92,7 @@ const (
 	FolderKey             = "folder"
 	MimeKey               = "mime-key"
 	DriveRepoRelPath      = "github.com/odeke-em/drive"
+	UrlKey                = "url"
 )
 
 const (
@@ -90,6 +101,7 @@ const (
 	DescCopy                  = "copy remote paths to a destination"
 	DescDelete                = "deletes the items permanently. This operation is irreversible"
 	DescDiff                  = "compares local files with their remote equivalent"
+	DescEdit                  = "edit the attributes of a file"
 	DescEmptyTrash            = "permanently cleans out your trash"
 	DescExcludeOps            = "exclude operations"
 	DescFeatures              = "returns information about the features of your drive"
@@ -99,6 +111,7 @@ const (
 	DescDeInit                = "removes the user's credentials and initialized files"
 	DescList                  = "lists the contents of remote path"
 	DescMove                  = "move files/folders"
+	DescPiped                 = "get content in from standard input (stdin)"
 	DescQuota                 = "prints out information related to your quota space"
 	DescPublish               = "publishes a file and prints its publicly available url"
 	DescRename                = "renames a file/folder"
@@ -132,9 +145,15 @@ const (
 	DescNotOwner           = "ignore elements owned by these users"
 	DescNew                = "create a new file/folder"
 	DescAllIndexOperations = "perform all the index related operations"
+	DescOpen               = "open a file in the appropriate filemanager or default browser"
+	DescUrl                = "returns the remote URL of each file"
+	DescVerbose            = "show step by step information verbosely"
+	DescFixClashes         = "fix clashes by renaming files"
+	DescDescription        = "set the description"
 )
 
 const (
+	CLIOptionDescription        = "description"
 	CLIOptionExplicitlyExport   = "explicitly-export"
 	CLIOptionIgnoreChecksum     = "ignore-checksum"
 	CLIOptionIgnoreConflict     = "ignore-conflict"
@@ -152,11 +171,24 @@ const (
 	CLIOptionNotOwner           = "skip-owner"
 	CLIOptionPruneIndices       = "prune"
 	CLIOptionAllIndexOperations = "all-ops"
+	CLIOptionVerboseKey         = "verbose"
+	CLIOptionVerboseShortKey    = "v"
+	CLIOptionOpen               = "open"
+	CLIOptionWebBrowser         = "web-browser"
+	CLIOptionFileBrowser        = "file-browser"
+	CLIOptionFixClashesKey      = "fix-clashes"
+	CLIOptionPiped              = "piped"
+)
+
+const (
+	DefaultMaxTraversalDepth = -1
 )
 
 const (
 	GoogleApiClientIdEnvKey     = "GOOGLE_API_CLIENT_ID"
 	GoogleApiClientSecretEnvKey = "GOOGLE_API_CLIENT_SECRET"
+	DriveGoMaxProcsKey          = "DRIVE_GOMAXPROCS"
+	GoMaxProcsKey               = "GOMAXPROCS"
 )
 
 const (
@@ -183,6 +215,9 @@ var docMap = map[string][]string{
 	DiffKey: []string{
 		DescDiff, "Accepts multiple remote paths for line by line comparison",
 		skipChecksumNote,
+	},
+	EditDescriptionShortKey: []string{
+		DescEdit, "Accepts multiple remote paths as well as ids",
 	},
 	EmptyTrashKey: []string{
 		DescEmptyTrash,
@@ -215,6 +250,10 @@ var docMap = map[string][]string{
 	MoveKey: []string{
 		DescMove,
 		"Moves files/folders between folders",
+	},
+	OpenKey: []string{
+		DescOpen, fmt.Sprintf("toggle between %q=bool and %q=bool",
+			CLIOptionWebBrowser, CLIOptionFileBrowser),
 	},
 	PubKey: []string{
 		DescPublish, "Accepts multiple paths",
@@ -253,21 +292,49 @@ var docMap = map[string][]string{
 	UnpubKey: []string{
 		DescUnpublish, "revokes public access to a list of remote files",
 	},
+	UrlKey: []string{
+		DescUrl, "takes multiple paths or ids",
+	},
 	VersionKey: []string{
 		DescVersion, fmt.Sprintf("current version is: %s", Version),
 	},
 }
 
-var Aliases = map[string][]string{
-	CopyKey: []string{"cp"},
-	ListKey: []string{"ls"},
-	MoveKey: []string{"mv"},
+func createAndRegisterAliases() map[string][]string {
+	aliases := map[string][]string{
+		CopyKey:            []string{"cp"},
+		ListKey:            []string{"ls"},
+		MoveKey:            []string{"mv"},
+		DeleteKey:          []string{"del"},
+		EditDescriptionKey: []string{EditDescriptionShortKey},
+	}
+
+	for originalKey, aliasList := range aliases {
+		docDetails, ok := docMap[originalKey]
+		if !ok {
+			continue
+		}
+
+		for _, alias := range aliasList {
+			docMap[alias] = docDetails
+		}
+	}
+
+	return aliases
 }
 
+var Aliases = createAndRegisterAliases()
+
 func ShowAllDescriptions() {
+	keys := []string{}
 	for key, _ := range docMap {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	for _, key := range keys {
 		ShowDescription(key)
-		fmt.Println()
 	}
 }
 
@@ -278,7 +345,6 @@ func ShowDescriptions(topics ...string) {
 
 	for _, topic := range topics {
 		ShowDescription(topic)
-		fmt.Println()
 	}
 }
 
@@ -290,17 +356,48 @@ func ShowDescription(topic string) {
 
 	help, ok := docMap[topic]
 	if !ok {
-		fmt.Printf("Unkown command '%s' type `drive help all` for entire usage documentation\n", topic)
+		PrintfShadow("Unkown command '%s' type `drive help all` for entire usage documentation", topic)
 		ShowAllDescriptions()
 	} else {
 		description, documentation := help[0], help[1:]
-		fmt.Printf("Name\n\t%s - %s\n", topic, description)
+		PrintfShadow("Name\n\t%s - %s\n", topic, description)
 		if len(documentation) >= 1 {
-			fmt.Println("Description")
+			PrintfShadow("Description\n")
 			for _, line := range documentation {
-				fmt.Printf("\t%s\n", line)
+				segments := formatText(line)
+				for _, segment := range segments {
+					PrintfShadow("\t%s", segment)
+				}
 			}
-			fmt.Printf("\n* For usage flags: \033[32m`drive %s -h`\033[00m\n\n", topic)
+			PrintfShadow("\n* For usage flags: \033[32m`drive %s -h`\033[00m\n\n", topic)
 		}
+		fmt.Fprintf(os.Stdout, "\n")
+	}
+}
+
+func formatText(text string) []string {
+	splits := strings.Split(text, "\n")
+
+	pr := prettywords.PrettyRubric{
+		Limit: 80,
+		Body:  splits,
+	}
+
+	return pr.Format()
+}
+
+func PrintfShadow(fmt_ string, args ...interface{}) {
+	FprintfShadow(os.Stdout, fmt_, args...)
+}
+
+func StdoutPrintf(fmt_ string, args ...interface{}) {
+	fmt.Fprintf(os.Stdout, fmt_, args...)
+}
+
+func FprintfShadow(f io.Writer, fmt_ string, args ...interface{}) {
+	sprinted := fmt.Sprintf(fmt_, args...)
+	splits := formatText(sprinted)
+	for _, split := range splits {
+		fmt.Fprintf(f, "%s\n", split)
 	}
 }

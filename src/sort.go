@@ -15,8 +15,6 @@
 package drive
 
 import (
-	"golang.org/x/text/collate"
-	"golang.org/x/text/language"
 	"sort"
 	"strings"
 )
@@ -54,13 +52,6 @@ var (
 	sizeCmpLess           = _lessCmper(AttrSize)
 	versionCmpLess        = _lessCmper(AttrVersion)
 	typeCmpLess           = _lessCmper(AttrIsDir)
-)
-
-var (
-	// TODO get collation order from system's locale
-	// language.Und seems to work well for common western locales
-
-	collator *collate.Collator = collate.New(language.Und)
 )
 
 func (fl modTimeFlist) Less(i, j int) bool {
@@ -215,7 +206,7 @@ func _lessCmper(_attr attr) func(*File, *File) bool {
 	case AttrMd5Checksum:
 		return nilCmpOrProceed(func(l, r *File) bool { return l.Md5Checksum < r.Md5Checksum })
 	case AttrName:
-		return nilCmpOrProceed(func(l, r *File) bool { return collator.CompareString(l.Name, r.Name) < 0 })
+		return nilCmpOrProceed(func(l, r *File) bool { return l.Name < r.Name })
 	case AttrModTime:
 		return nilCmpOrProceed(func(l, r *File) bool { return l.ModTime.Before(r.ModTime) })
 	case AttrLastViewedByMeTime:

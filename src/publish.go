@@ -38,7 +38,7 @@ func (c *Commands) remFileResolve(relToRoot string, byId bool) (*File, error) {
 
 func (c *Commands) pub(relToRoot string, byId bool) (err error) {
 	file, err := c.remFileResolve(relToRoot, byId)
-	if err != nil {
+	if err != nil || file == nil {
 		return err
 	}
 
@@ -47,9 +47,8 @@ func (c *Commands) pub(relToRoot string, byId bool) (err error) {
 	if err != nil {
 		return
 	}
-	if hasExportLinks(file) {
-		link = file.AlternateLink
-	}
+
+	link = file.Url()
 
 	if byId {
 		relToRoot = fmt.Sprintf("%s aka %s", relToRoot, file.Name)

@@ -16,18 +16,19 @@ package drive
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	gopath "path"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/odeke-em/drive/config"
 )
+
+var mkdirAllMu = sync.Mutex{}
 
 // Pushes to remote if local path exists and in a gd context. If path is a
 // directory, it recursively pushes to the remote if there are local changes.
@@ -74,6 +75,14 @@ func (g *Commands) Push() (err error) {
 	}
 
 	if len(clashes) >= 1 {
+		if g.opts.FixClashes {
+			err := autoRenameClashes(g, clashes)
+			if err == nil {
+				g.log.Logln("Clashes were fixed, try pulling again.")
+			}
+			return err
+		}
+
 		warnClashesPersist(g.log, clashes)
 		return ErrClashesDetected
 	}
@@ -100,10 +109,8 @@ func (g *Commands) Push() (err error) {
 
 	pushSize, modSize := reduceToSize(cl, SelectDest|SelectSrc)
 
-	// TODO: Handle compensation from deletions and modifications
-	if false {
-		pushSize -= modSize
-	}
+	// Compensate for deletions and modifications
+	pushSize -= modSize
 
 	// Warn about (near) quota exhaustion
 	quotaStatus, quotaErr := g.QuotaStatus(pushSize)
@@ -119,8 +126,14 @@ func (g *Commands) Push() (err error) {
 		g.log.LogErrln("\033[91mThis change will exceed your drive quota\033[00m")
 		unSafe = true
 	}
+
 	if unSafe {
-		g.log.LogErrf(" projected size: (%d) %s\n", pushSize, prettyBytes(pushSize))
+		unSafeQuotaMsg := fmt.Sprintf("projected size: (%d) %s\n", pushSize, prettyBytes(pushSize))
+		if !g.opts.canPrompt() {
+			return fmt.Errorf("quota: noPrompt is set yet for quota %s", unSafeQuotaMsg)
+		}
+
+		g.log.LogErrf(" %s", unSafeQuotaMsg)
 		if !promptForChanges() {
 			return
 		}
@@ -196,10 +209,15 @@ func (g *Commands) PushPiped() (err error) {
 			}
 		}
 
+		fauxSrc := DupFile(rem)
+		if fauxSrc != nil {
+			fauxSrc.ModTime = time.Now()
+		}
+
 		args := upsertOpt{
 			parentId:       parent.Id,
 			fsAbsPath:      relToRootPath,
-			src:            rem,
+			src:            fauxSrc,
 			dest:           rem,
 			mask:           g.opts.TypeMask,
 			nonStatable:    true,
@@ -235,8 +253,24 @@ func (g *Commands) deserializeIndex(identifier string) *config.Index {
 	return index
 }
 
-func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounter) (err error) {
+func translateOpToChanger(g *Commands, c *Change) func(*Change) error {
+	var fn func(*Change) error = nil
 
+	op := c.Op()
+	switch op {
+	case OpMod:
+		fn = g.remoteMod
+	case OpModConflict:
+		fn = g.remoteMod
+	case OpAdd:
+		fn = g.remoteAdd
+	case OpDelete:
+		fn = g.remoteTrash
+	}
+	return fn
+}
+
+func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounter) (err error) {
 	if opMap == nil {
 		result := opChangeCount(cl)
 		opMap = &result
@@ -252,47 +286,85 @@ func (g *Commands) playPushChanges(cl []*Change, opMap *map[Operation]sizeCounte
 
 	defer close(g.rem.progressChan)
 
-	// TODO: Only provide precedence ordering if all the other options are allowed
-	// Currently noop on sorting by precedence
-	sort.Sort(ByPrecedence(cl))
-
 	go func() {
 		for n := range g.rem.progressChan {
 			g.taskAdd(int64(n))
 		}
 	}()
 
-	for i, c := range cl {
-		if c == nil {
-			g.log.LogErrf("BUGON:: push: nil change found for change index %d\n", i)
-			continue
-		}
-
-		var fn func(*Change) error = nil
-
-		op := c.Op()
-		switch op {
-		case OpMod:
-			fn = g.remoteMod
-		case OpModConflict:
-			fn = g.remoteMod
-		case OpAdd:
-			fn = g.remoteAdd
-		case OpDelete:
-			fn = g.remoteTrash
-		}
-
-		if fn == nil {
-			g.log.LogErrf("push: cannot find operator for %v", op)
-			continue
-		}
-
-		if err := fn(c); err != nil {
-			g.log.LogErrf("push: %s err: %v\n", c.Path, err)
-		}
+	type workPair struct {
+		fn  func(*Change) error
+		arg *Change
 	}
 
-	// Time to organize them according branching
+	n := maxProcs()
+	bench := make(chan *workPair, n)
+	ackChan := make(chan bool, n)
+
+	// Fill up ackChan initially with pass tokens
+	for i := 0; i < n; i++ {
+		ackChan <- true
+	}
+
+	throttle := time.Tick(time.Duration(1e9 / n))
+	canPrintSteps := g.opts.Verbose && g.opts.canPrompt()
+
+	sort.Sort(ByPrecedence(cl))
+
+	doneCount := len(cl)
+	done := make(chan bool, doneCount)
+
+	go func() {
+		defer close(bench)
+		for i, c := range cl {
+			if c == nil {
+				done <- true
+				g.log.LogErrf("BUGON:: push: nil change found for change index %d\n", i)
+				continue
+			}
+
+			fn := translateOpToChanger(g, c)
+
+			if fn == nil {
+				g.log.LogErrf("push: cannot find operator for %v", c.Op())
+				done <- true
+				continue
+			}
+
+			bench <- &workPair{fn: fn, arg: c}
+			<-ackChan
+		}
+	}()
+
+	go func() {
+		for wp := range bench {
+			fn, c := wp.fn, wp.arg
+
+			go func() {
+				if canPrintSteps {
+					g.log.Logln("\033[01mPush::Started", c.Path, "\033[00m")
+				}
+
+				if err := fn(c); err != nil {
+					g.log.LogErrf("push: %s err: %v\n", c.Path, err)
+				}
+
+				if canPrintSteps {
+					g.log.Logln("\033[04mPush::Done", c.Path, "\033[00m")
+				}
+
+				<-throttle
+
+				done <- true
+				ackChan <- true
+			}()
+		}
+	}()
+
+	for i := 0; i < doneCount; i++ {
+		<-done
+	}
+
 	g.taskFinish()
 	return err
 }
@@ -315,6 +387,7 @@ func lonePush(g *Commands, parent, absPath, path string) (cl, clashes []*Change,
 		base:   absPath,
 		remote: r,
 		local:  l,
+		depth:  g.opts.Depth,
 	}
 
 	return g.resolveChangeListRecv(clr)
@@ -343,11 +416,20 @@ func (g *Commands) remoteMod(change *Change) (err error) {
 
 	absPath := g.context.AbsPathOf(change.Path)
 
-	var parent *File
-	if change.Dest != nil && change.Src != nil {
+	if change.Src != nil && change.Src.IsDir {
+		needsMkdirAll := change.Dest == nil || change.Src.Id == ""
+		if needsMkdirAll {
+			if destFile, _ := g.remoteMkdirAll(change.Path); destFile != nil {
+				change.Src.Id = destFile.Id
+			}
+		}
+	}
+
+	if change.Dest != nil && change.Src != nil && change.Src.Id == "" {
 		change.Src.Id = change.Dest.Id // TODO: bad hack
 	}
 
+	var parent *File
 	parentPath := g.parentPather(change.Path)
 	parent, err = g.remoteMkdirAll(parentPath)
 
@@ -369,6 +451,7 @@ func (g *Commands) remoteMod(change *Change) (err error) {
 		dest:           change.Dest,
 		mask:           g.opts.TypeMask,
 		ignoreChecksum: g.opts.IgnoreChecksum,
+		debug:          g.opts.Verbose && g.opts.canPrompt(),
 	}
 
 	coercedMimeKey, ok := g.coercedMimeKey()
@@ -431,6 +514,12 @@ func remoteRemover(g *Commands, change *Change, fn func(string) error) (err erro
 		return
 	}
 
+	if change.Dest.IsDir {
+		mkdirAllMu.Lock()
+		g.mkdirAllCache.Remove(change.Path)
+		mkdirAllMu.Unlock()
+	}
+
 	index := change.Dest.ToIndex()
 	err = g.context.RemoveIndex(index, g.context.AbsPathOf(""))
 
@@ -451,30 +540,53 @@ func (g *Commands) remoteDelete(change *Change) error {
 }
 
 func (g *Commands) remoteMkdirAll(d string) (file *File, err error) {
+	mkdirAllMu.Lock()
+
+	cachedValue, ok := g.mkdirAllCache.Get(d)
+
+	if ok && cachedValue != nil {
+		castF, castOk := cachedValue.Value().(*File)
+		// g.log.Logln("CacheHit", d, castF, castOk)
+		if castOk && castF != nil {
+			mkdirAllMu.Unlock()
+			return castF, nil
+		}
+	}
+
 	// Try the lookup one last time in case a coroutine raced us to it.
 	retrFile, retryErr := g.rem.FindByPath(d)
 
 	if retryErr != nil && retryErr != ErrPathNotExists {
+		mkdirAllMu.Unlock()
 		return retrFile, retryErr
 	}
 
 	if retrFile != nil {
+		mkdirAllMu.Unlock()
 		return retrFile, nil
 	}
 
-	rest, last := remotePathSplit(d)
+	parDirPath, last := remotePathSplit(d)
 
-	parent, parentErr := g.rem.FindByPath(rest)
+	parent, parentErr := g.rem.FindByPath(parDirPath)
+
 	if parentErr != nil && parentErr != ErrPathNotExists {
+		mkdirAllMu.Unlock()
 		return parent, parentErr
 	}
 
+	mkdirAllMu.Unlock()
 	if parent == nil {
-		parent, parentErr = g.remoteMkdirAll(rest)
+		parent, parentErr = g.remoteMkdirAll(parDirPath)
 		if parentErr != nil || parent == nil {
 			return parent, parentErr
 		}
 	}
+
+	mkdirAllMu.Lock()
+	defer mkdirAllMu.Unlock()
+
+	g.mkdirAllCache.Put(parDirPath, newExpirableCacheValue(parent))
 
 	remoteFile := &File{
 		IsDir:   true,
@@ -485,25 +597,28 @@ func (g *Commands) remoteMkdirAll(d string) (file *File, err error) {
 	args := upsertOpt{
 		parentId: parent.Id,
 		src:      remoteFile,
-	}
-	parent, parentErr = g.rem.UpsertByComparison(&args)
-	if parentErr != nil {
-		return parent, parentErr
+		debug:    g.opts.Verbose && g.opts.canPrompt(),
 	}
 
-	if parent == nil {
-		return parent, ErrPathNotExists
+	cur, curErr := g.rem.UpsertByComparison(&args)
+	if curErr != nil {
+		return cur, curErr
 	}
 
-	index := parent.ToIndex()
+	if cur == nil {
+		return cur, ErrPathNotExists
+	}
+
+	index := cur.ToIndex()
 	wErr := g.context.SerializeIndex(index)
 
 	// TODO: Should indexing errors be reported?
 	if wErr != nil {
-		g.log.LogErrf("serializeIndex %s: %v\n", parent.Name, wErr)
+		g.log.LogErrf("serializeIndex %s: %v\n", cur.Name, wErr)
 	}
 
-	return parent, nil
+	g.mkdirAllCache.Put(d, newExpirableCacheValue(cur))
+	return cur, nil
 }
 
 func namedPipe(mode os.FileMode) bool {
@@ -512,66 +627,4 @@ func namedPipe(mode os.FileMode) bool {
 
 func symlink(mode os.FileMode) bool {
 	return (mode & os.ModeSymlink) != 0
-}
-
-func list(context *config.Context, p string, hidden bool, ignore *regexp.Regexp) (fileChan chan *File, err error) {
-	absPath := context.AbsPathOf(p)
-	var f []os.FileInfo
-	f, err = ioutil.ReadDir(absPath)
-	fileChan = make(chan *File)
-	if err != nil {
-		close(fileChan)
-		return
-	}
-
-	go func() {
-		for _, file := range f {
-			fileName := file.Name()
-			if fileName == config.GDDirSuffix {
-				continue
-			}
-			if isHidden(fileName, hidden) {
-				continue
-			}
-
-			resPath := gopath.Join(absPath, fileName)
-			if anyMatch(ignore, fileName, resPath) {
-				continue
-			}
-
-			// TODO: (@odeke-em) decide on how to deal with isFifo
-			if namedPipe(file.Mode()) {
-				fmt.Fprintf(os.Stderr, "%s (%s) is a named pipe, not reading from it\n", p, resPath)
-				continue
-			}
-
-			if !symlink(file.Mode()) {
-				fileChan <- NewLocalFile(resPath, file)
-			} else {
-				var symResolvPath string
-				symResolvPath, err = filepath.EvalSymlinks(resPath)
-				if err != nil {
-					continue
-				}
-
-				if anyMatch(ignore, symResolvPath) {
-					continue
-				}
-
-				var symInfo os.FileInfo
-				symInfo, err = os.Stat(symResolvPath)
-				if err != nil {
-					continue
-				}
-
-				lf := NewLocalFile(symResolvPath, symInfo)
-				// Retain the original name as appeared in
-				// the manifest instead of the resolved one
-				lf.Name = fileName
-				fileChan <- lf
-			}
-		}
-		close(fileChan)
-	}()
-	return
 }

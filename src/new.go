@@ -37,6 +37,10 @@ func _newFile(g *Commands, folder bool) (err error) {
 		}
 	}
 
+	spin := g.playabler()
+	spin.play()
+	defer spin.stop()
+
 	for _, relToRootPath := range g.opts.Sources {
 		parentPath, basename := g.pathSplitter(relToRootPath)
 

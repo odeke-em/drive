@@ -30,8 +30,10 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"github.com/odeke-em/drive/config"
-	drive "github.com/google/google-api-go-client/drive/v2"
 	"github.com/odeke-em/statos"
+
+	expb "github.com/odeke-em/exponential-backoff"
+	drive "google.golang.org/api/drive/v2"
 )
 
 const (
@@ -46,6 +48,9 @@ const (
 
 	// Google Drive webpage host
 	DriveResourceHostURL = "https://googledrive.com/host/"
+
+	// Google Drive entry point
+	DriveResourceEntryURL = "https://drive.google.com"
 )
 
 const (
@@ -59,9 +64,10 @@ const (
 )
 
 var (
-	ErrPathNotExists                  = errors.New("remote path doesn't exist")
-	ErrNetLookup                      = errors.New("net lookup failed")
-	ErrClashesDetected                = fmt.Errorf("clashes detected. use `%s` to override this behavior", CLIOptionIgnoreNameClashes)
+	ErrPathNotExists   = errors.New("remote path doesn't exist")
+	ErrNetLookup       = errors.New("net lookup failed")
+	ErrClashesDetected = fmt.Errorf("clashes detected. Use `%s` to override this behavior or `%s` to try fixing this",
+		CLIOptionIgnoreNameClashes, CLIOptionFixClashesKey)
 	ErrGoogleApiInvalidQueryHardCoded = errors.New("googleapi: Error 400: Invalid query, invalid")
 )
 
@@ -172,6 +178,15 @@ func (r *Remote) FindById(id string) (file *File, err error) {
 		return
 	}
 	return NewRemoteFile(f), nil
+}
+
+func retryableChangeOp(fn func() (interface{}, error), debug bool) *expb.ExponentialBacker {
+	return &expb.ExponentialBacker{
+		Do:          fn,
+		StatusCheck: retryableErrorCheck,
+		RetryCount:  MaxFailedRetryCount,
+		Debug:       debug,
+	}
 }
 
 func (r *Remote) findByPath(p string, trashed bool) (*File, error) {
@@ -372,7 +387,7 @@ func (r *Remote) Touch(id string) (*File, error) {
 func toUTCString(t time.Time) string {
 	utc := t.UTC().Round(time.Second)
 	// Ugly but straight forward formatting as time.Parse is such a prima donna
-	return fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%0d.000Z",
+	return fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d.000Z",
 		utc.Year(), utc.Month(), utc.Day(),
 		utc.Hour(), utc.Minute(), utc.Second())
 }
@@ -394,8 +409,10 @@ func indexContent(mask int) bool {
 }
 
 type upsertOpt struct {
+	debug          bool
 	parentId       string
 	fsAbsPath      string
+	relToRootPath  string
 	src            *File
 	dest           *File
 	mask           int
@@ -505,11 +522,7 @@ func (r *Remote) upsertByComparison(body io.Reader, args *upsertOpt) (f *File, m
 	return
 }
 
-func (r *Remote) rename(fileId, newTitle string) (*File, error) {
-	f := &drive.File{
-		Title: newTitle,
-	}
-
+func (r *Remote) byFileIdUpdater(fileId string, f *drive.File) (*File, error) {
 	req := r.service.Files.Update(fileId, f)
 	uploaded, err := req.Do()
 	if err != nil {
@@ -517,6 +530,22 @@ func (r *Remote) rename(fileId, newTitle string) (*File, error) {
 	}
 
 	return NewRemoteFile(uploaded), nil
+}
+
+func (r *Remote) rename(fileId, newTitle string) (*File, error) {
+	f := &drive.File{
+		Title: newTitle,
+	}
+
+	return r.byFileIdUpdater(fileId, f)
+}
+
+func (r *Remote) updateDescription(fileId, newDescription string) (*File, error) {
+	f := &drive.File{
+		Description: newDescription,
+	}
+
+	return r.byFileIdUpdater(fileId, f)
 }
 
 func (r *Remote) removeParent(fileId, parentId string) error {
@@ -572,19 +601,49 @@ func (r *Remote) UpsertByComparison(args *upsertOpt) (f *File, err error) {
 		}
 	}()
 
-	mediaInserted := false
+	resultLoad := make(chan *tuple)
 
-	f, mediaInserted, err = r.upsertByComparison(bd, args)
+	go func() {
+		emitter := func() (interface{}, error) {
+			f, mediaInserted, err := r.upsertByComparison(bd, args)
+			return &tuple{first: f, second: mediaInserted, last: err}, err
+		}
 
-	// Case in which for example just Chtime-ing
-	if !mediaInserted && args.dest != nil {
-		chunks := chunkInt64(args.dest.Size)
-		for n := range chunks {
-			r.progressChan <- n
+		retrier := retryableChangeOp(emitter, args.debug)
+
+		res, err := expb.ExponentialBackOffSync(retrier)
+		resultLoad <- &tuple{first: res, last: err}
+	}()
+
+	result := <-resultLoad
+	if result == nil {
+		return f, err
+	}
+
+	tup, tupOk := result.first.(*tuple)
+	if tupOk {
+		ff, fOk := tup.first.(*File)
+		if fOk {
+			f = ff
+		}
+
+		mediaInserted, mediaOk := tup.second.(bool)
+
+		// Case in which for example just Chtime-ing
+		if mediaOk && !mediaInserted && f != nil {
+			chunks := chunkInt64(f.Size)
+			for n := range chunks {
+				r.progressChan <- n
+			}
+		}
+
+		errV, errCastOk := tup.last.(error)
+		if errCastOk {
+			err = errV
 		}
 	}
 
-	return
+	return f, err
 }
 
 func (r *Remote) findShared(p []string) (chan *File, error) {
