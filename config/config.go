@@ -357,7 +357,7 @@ func Initialize(absPath string) (pathGD string, firstInit bool, c *Context, err 
 	if sErr != nil {
 		if os.IsNotExist(sErr) {
 			firstInit = true
-		} else { // An err not related to path existance
+		} else { // An err not related to path existence
 			err = sErr
 			return
 		}

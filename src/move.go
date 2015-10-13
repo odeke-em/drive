@@ -79,7 +79,7 @@ func (g *Commands) move(opt *moveOpt) (err error) {
 	}
 
 	if newParent == nil || !newParent.IsDir {
-		return fmt.Errorf("dest: '%s' must be an existant folder", opt.dest)
+		return fmt.Errorf("dest: '%s' must be an existent folder", opt.dest)
 	}
 
 	if !opt.byId {
@@ -136,7 +136,7 @@ func (g *Commands) removeParent(fileId, relToRootPath string) error {
 		return pErr
 	}
 	if parent == nil {
-		return fmt.Errorf("non existant parent '%s' for src", parentPath)
+		return fmt.Errorf("non existent parent '%s' for src", parentPath)
 	}
 	return g.rem.removeParent(fileId, parent.Id)
 }

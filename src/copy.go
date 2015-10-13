@@ -93,7 +93,7 @@ func (g *Commands) Copy(byId bool) error {
 
 func (g *Commands) copy(src *File, destPath string) (*File, error) {
 	if src == nil {
-		return nil, fmt.Errorf("non existant src")
+		return nil, fmt.Errorf("non existent src")
 	}
 
 	if !src.IsDir {
