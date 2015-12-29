@@ -117,6 +117,7 @@ func main() {
 	bindCommandWithAliases(drive.UnStarKey, drive.DescUnStar, &unstarCmd{}, []string{})
 	bindCommandWithAliases(drive.ClashesKey, drive.DescFixClashes, &clashesCmd{}, []string{})
 	bindCommandWithAliases(drive.IdKey, drive.DescId, &idCmd{}, []string{})
+	bindCommandWithAliases(drive.ReportIssueKey, drive.DescReportIssue, &issueCmd{}, []string{})
 
 	command.DefineHelp(&helpCmd{})
 	command.ParseAndRun()
@@ -1609,6 +1610,41 @@ func (ccmd *clashesCmd) Run(args []string, definedFlags map[string]*flag.Flag) {
 	}
 
 	exitWithError(fn(*cmd.ById))
+}
+
+type issueCmd struct {
+	Piped *bool
+	Title *string
+	Body  *string
+}
+
+func (ic *issueCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
+	ic.Piped = fs.Bool(drive.CLIOptionPiped, false, drive.DescPiped)
+	ic.Title = fs.String(drive.IssueTitleKey, "", drive.DescIssueTitle)
+	ic.Body = fs.String(drive.IssueBodyKey, "", drive.DescIssueBody)
+
+	return fs
+}
+
+func (cmd *issueCmd) Run(args []string, definedFlags map[string]*flag.Flag) {
+	sources, context, path := preprocessArgs(args)
+
+	meta := map[string][]string{
+		drive.IssueTitleKey: []string{*cmd.Title},
+		drive.IssueBodyKey:  []string{*cmd.Body},
+	}
+
+	if *cmd.Piped {
+		meta[drive.PipedKey] = []string{fmt.Sprintf("%v", *cmd.Piped)}
+	}
+
+	opts := &drive.Options{
+		Path:    path,
+		Sources: sources,
+		Meta:    &meta,
+	}
+
+	exitWithError(drive.New(context, opts).FileIssue())
 }
 
 func initContext(args []string) *config.Context {

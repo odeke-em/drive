@@ -52,6 +52,7 @@
   - [Drive Server](#drive-server)
   - [QR Code Share](#qr-code-share)
   - [Star Or Unstar](#star-or-unstar)
+  - [Filing Issues](#filing-issues)
 - [Revoking Account Access](#revoking-account-access)
 - [Uninstalling](#uninstalling)
 - [Applying patches](#applying-patches)
@@ -1100,6 +1101,21 @@ $ drive star --id 0fM9rt0Yc9RTPaDdsNzg1dXVjM0E 0fM9rt0Yc9RTPaTVGc1pzODN1NjQ 0fM9
 ```shell
 $ drive unstar information quest/A/B/C
 $ drive unstar --id 0fM9rt0Yc9RTPaDdsNzg1dXVjM0E 0fM9rt0Yc9RTPaTVGc1pzODN1NjQ 0fM9rt0Yc9RTPV1NaNFp5WlV3dlU
+```
+
+## Filing Issues
+
+In case of any issue, you can file one by using command `issue` aka `report-issue` aka `report`.
+It takes flags `--title` `--body` `--piped`.
+
+* If `--piped` is set, it expects to read the body from standard input).
+
+A successful issue-filing request will open up the project's issue tracker in your web browser.
+
+```
+$ drive issue --title "Can't open my file" --body "Drive trips out everytime"
+$ drive report-issue --title "Can't open my file" --body "Drive trips out everytime"
+$ cat bugReport.txt | drive issue --piped --title "push: dump on pushing from this directory"
 ```
 
 ### Revoking Account Access

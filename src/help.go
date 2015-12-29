@@ -113,6 +113,9 @@ const (
 	PageSizeKey           = "pagesize"
 	DriveRepoRelPath      = "github.com/odeke-em/drive"
 	UrlKey                = "url"
+	ReportIssueKey        = "report-issue"
+	IssueTitleKey         = "title"
+	IssueBodyKey          = "body"
 )
 
 const (
@@ -180,6 +183,9 @@ const (
 	DescUnifiedDiff        = "unified diff"
 	DescDiffBaseLocal      = "when set uses local as the base other remote will be used as the base"
 	DescClashesOpById      = "operate on clashes by id instead of by path"
+	DescIssueBody          = "the detailed description of the issue being filed"
+	DescIssueTitle         = "the title of the issue being filed"
+	DescReportIssue        = "report an issue to the project's issue tracker"
 	DescId                 = "retrieve the fileId for the specified paths"
 )
 
@@ -353,6 +359,7 @@ func createAndRegisterAliases() map[string][]string {
 		DeleteKey:          []string{"del"},
 		EditDescriptionKey: []string{EditDescriptionShortKey},
 		IdKey:              []string{"file-id"},
+		ReportIssueKey:     []string{"issue", "report"},
 	}
 
 	for originalKey, aliasList := range aliases {
