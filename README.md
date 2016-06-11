@@ -12,6 +12,7 @@
 - [Installation](#installation)
   - [Platform Packages](#platform-packages)
   - [Godep](#godep)
+  - [Cross Compilation](#cross-compilation)
 - [Configuration](#configuration)
 - [Usage](#usage)
   - [Initializing](#initializing)
@@ -131,6 +132,21 @@ Please see file `drive-gen/README.md` for more information.
 For curated packages on your favorite platform, please see file [Platform Packages.md](https://github.com/odeke-em/drive/blob/master/platform_packages.md).
 
 Is your platform missing a package? Feel free to prepare / contribute an installation package and then submit a PR to add it in.
+
+### Cross Compilation
+
+See file `Makefile` which currently supports cross compilation. Just run `make` and then inspect the binaries in directory `bin`.
+
+* Supported platforms to cross compile to:
+- ARMv5.
+- ARMv6.
+- ARMv7.
+- ARMv8.
+- Darwin (OS X).
+- Linux.
+
+Also inspect file `bin/md5Sums.txt` after the cross compilation.
+
 
 ## Configuration
 
