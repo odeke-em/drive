@@ -148,6 +148,50 @@ func (c *Context) DeserializeIndex(key string) (*Index, error) {
 	return &index, err
 }
 
+func (c *Context) DeserialzeIndices(keys chan string) (results chan *Index) {
+	results = make(chan *Index)
+
+	go func() {
+		defer close(results)
+
+		deserializefn := func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists(byteify(IndicesKey))
+			if err != nil {
+				return err
+			}
+
+			if bucket == nil {
+				return ErrNoSuchDbBucket
+			}
+
+			for key := range keys {
+				retr := bucket.Get(byteify(key))
+				if len(retr) < 1 {
+					fmt.Fprintf(os.Stderr, "[%v] %s\n", ErrNoSuchDbKey, key)
+					continue
+				}
+
+				index := Index{}
+				err := json.Unmarshal(retr, &index)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "[%v] %s\n", err, key)
+					continue
+				}
+
+				results <- &index
+			}
+
+			return nil
+		}
+
+		if err := c.DB.Batch(deserializefn); err != nil {
+			fmt.Fprintf(os.Stderr, "[%v]\n", err)
+		}
+	}()
+
+	return results
+}
+
 func (c *Context) ListKeys(dir, bucketName string) (chan string, error) {
 	keysChan := make(chan string)
 	if creationErr := c.CreateIndicesBucket(); creationErr != nil {
@@ -279,6 +323,39 @@ func (c *Context) SerializeIndex(index *Index) (err error) {
 		}
 		return bucket.Put(byteify(index.FileId), data)
 	})
+}
+
+func (c *Context) SerializeIndices(indices chan *Index) error {
+	createIndices := func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists(byteify(IndicesKey))
+		if err != nil {
+			return err
+		}
+
+		if bucket == nil {
+			return ErrNoSuchDbBucket
+		}
+
+		for index := range indices {
+			if index == nil {
+				continue
+			}
+
+			data, marshalErr := json.Marshal(index)
+			if marshalErr != nil {
+				fmt.Fprintf(os.Stderr, "marshalerr: %v\n", marshalErr)
+				continue
+			}
+
+			if err := bucket.Put(byteify(index.FileId), data); err != nil {
+				fmt.Fprintf(os.Stderr, "%v\n", err)
+			}
+		}
+
+		return nil
+	}
+
+	return c.DB.Batch(createIndices)
 }
 
 func (c *Context) Write() (err error) {
