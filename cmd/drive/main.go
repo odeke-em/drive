@@ -1562,13 +1562,15 @@ func (cmd *unshareCmd) Run(args []string, definedFlags map[string]*flag.Flag) {
 }
 
 type moveCmd struct {
-	Quiet *bool `json:"quiet"`
-	ById  *bool `json:"by-id"`
+	Quiet       *bool `json:"quiet"`
+	ById        *bool `json:"by-id"`
+	KeepParent  *bool `json:"keep-parent"`
 }
 
 func (cmd *moveCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
 	cmd.Quiet = fs.Bool(drive.QuietKey, false, "if set, do not log anything but errors")
 	cmd.ById = fs.Bool(drive.CLIOptionId, false, "move by id instead of path")
+	cmd.KeepParent = fs.Bool(drive.CLIOptionKeepParent, false, drive.DescKeepParent)
 	return fs
 }
 
@@ -1592,7 +1594,7 @@ func (cmd *moveCmd) Run(args []string, definedFlags map[string]*flag.Flag) {
 		Path:    path,
 		Sources: sources,
 		Quiet:   *cmd.Quiet,
-	}).Move(*cmd.ById))
+	}).Move(*cmd.ById, *cmd.KeepParent))
 }
 
 type renameCmd struct {

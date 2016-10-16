@@ -21,9 +21,10 @@ import (
 )
 
 type moveOpt struct {
-	src  string
-	dest string
-	byId bool
+	src        string
+	dest       string
+	byId       bool
+	keepParent bool
 }
 
 type RenameMode uint
@@ -46,7 +47,7 @@ func cannotRename(rmode RenameMode) bool {
 	return !(canRenameLocal(rmode) || canRenameRemote(rmode))
 }
 
-func (g *Commands) Move(byId bool) error {
+func (g *Commands) Move(byId, keepParent bool ) error {
 	argc := len(g.opts.Sources)
 	if argc < 2 {
 		return invalidArgumentsErr(fmt.Errorf("move: expected <src> [src...] <dest>, instead got: %v", g.opts.Sources))
@@ -65,9 +66,10 @@ func (g *Commands) Move(byId bool) error {
 		}
 
 		opt := moveOpt{
-			src:  src,
-			dest: dest,
-			byId: byId,
+			src:        src,
+			dest:       dest,
+			byId:       byId,
+			keepParent: keepParent,
 		}
 
 		if err := g.move(&opt); err != nil {
@@ -147,7 +149,12 @@ func (g *Commands) move(opt *moveOpt) (err error) {
 	if opt.byId { // TODO: Also take out this current parent
 		return nil
 	}
-	return g.removeParent(remSrc.Id, opt.src)
+
+	if !opt.keepParent {
+		err = g.removeParent(remSrc.Id, opt.src)
+	}
+
+	return err
 }
 
 func (g *Commands) removeParent(fileId, relToRootPath string) error {

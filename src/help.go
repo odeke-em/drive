@@ -198,6 +198,7 @@ const (
 	DescDecryptionPassword           = "decryption password"
 	DescWithLink                     = "turn off file indexing so that only those with the link can view it"
 	DescAllowDesktopLinks            = "allows docs + sheets to be pulled as .desktop files or URL linked files"
+	DescKeepParent                   = "ensures that when moving a file into a destination, that we also retain its original parent so that it will exist in more than one folder"
 
 	DescTouchTimeStr          = "the time each file's modification time should be set to"
 	DescTouchOffsetDuration   = "the duration offset from now that each file's modification time should be set to e.g -32h\nSee https://golang.org/pkg/time/#ParseDuration"
@@ -249,6 +250,7 @@ const (
 	CLIDecryptionPassword       = "decryption-password"
 	CLIOptionWithLink           = "with-link"
 	CLIOptionDesktopLinks       = "desktop-links"
+	CLIOptionKeepParent         = "keep-parent"
 
 	CLIOptionExportsDumpToSameDirectory = "same-exports-dir"
 )
