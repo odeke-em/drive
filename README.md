@@ -622,6 +622,12 @@ For example to share a file with users of a mailing list and a custom message
 drive share -emails drive-mailing-list@gmail.com -message "Here is the drive code" -role group mnt/drive
 ```
 
++ By default, an email notification is sent (even if -message is not specfified). To turn off email notification, use -notify=false
+
+```shell
+$ drive share -notify=false -emails emm.odeke@gmail.com,odeke@ualberta.ca -role reader,commenter -type user influx traversal/notes/conquest
+```
+
 + Also supports sharing by fileId
 
 ```shell
