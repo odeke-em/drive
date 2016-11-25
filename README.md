@@ -628,7 +628,7 @@ drive share -emails drive-mailing-list@gmail.com -message "Here is the drive cod
 $ drive share -notify=false -emails emm.odeke@gmail.com,odeke@ualberta.ca -role reader,commenter -type user influx traversal/notes/conquest
 ```
 
-+ Also supports sharing by fileId
++ The `share` command also supports sharing by fileId
 
 ```shell
 drive share -emails developers@developers.devs -message "Developers, developers developers" -id 0fM9rt0Yc9RTPeHRfRHRRU0dIY97 0fM9rt0Yc9kJRPSTFNk9kSTVvb0U
