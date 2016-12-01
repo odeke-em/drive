@@ -95,6 +95,18 @@ Otherwise:
 go get github.com/odeke-em/drive/drive-gen && drive-gen
 ```
 
+If you have problems on Ubuntu and Mint, do this:
+
+```
+bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+gvm install go1.4
+gvm use go1.4
+gvm install go1.5.2
+gvm use go1.5.2 --default
+```
+(solution provided by @chevillet)
+
+
 In case you need a specific binary e.g for Debian folks [issue #271](https://github.com/odeke-em/drive/issues/271) and [issue 277](https://github.com/odeke-em/drive/issues/277)
 
 ```shell
