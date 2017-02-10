@@ -1,4 +1,3 @@
-before:
-- go get -u github.com/odeke-em/drive/cmd/drive
-- cd $GOPATH/src/github.com/odeke-em/drive/drive-gen && godep save
-- cd $GOPATH/src/github.com/odeke-em/drive/drive-gen && godep restore
+dependencies:
+  - default-dependency-1
+  - default-dependency-2
