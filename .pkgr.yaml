@@ -2,5 +2,6 @@ dependencies:
   - default-dependency-1
   - default-dependency-2
 before:
- - cd $GOPATH/src/github.com/odeke-em/drive/drive-gen && godep save
- - cd $GOPATH/src/github.com/odeke-em/drive/drive-gen && godep restore
+ -  go get github.com/odeke-em/drive/cmd/drive
+ -	go get github.com/odeke-em/drive/config
+ -	go get github.com/odeke-em/command
