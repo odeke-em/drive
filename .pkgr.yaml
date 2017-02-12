@@ -1,7 +1,0 @@
-dependencies:
-  - default-dependency-1
-  - default-dependency-2
-before:
- -  go get github.com/odeke-em/drive/cmd/drive
- -	go get github.com/odeke-em/drive/config
- -	go get github.com/odeke-em/command
