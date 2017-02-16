@@ -1,0 +1,6 @@
+dependencies:
+  - default-dependency-1
+  - default-dependency-2
+after:
+- touch bin/.bash_aliases
+- echo "alias drivee='/opt/drive/bin/drive'" > bin/.bash_aliases
