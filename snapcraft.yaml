@@ -1,5 +1,6 @@
 name: drive
 summary: Google Drive client for the commandline
+version: current
 description:
   drive is a tiny program to pull or push Google Drive files.
 confinement: strict
