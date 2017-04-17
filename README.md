@@ -77,6 +77,8 @@
 
 go 1.7.X or higher is required. See [here](https://golang.org/doc/install) for installation instructions and platform installers.
 
+Also see [Precautions for building on devices with less than 1GB RAM](https://github.com/odeke-em/drive/wiki/Precautions-for-building-on-devices-with-less-than-1GB-RAM) if you have less than 1GB memory on your device.
+
 * Make sure to set your GOPATH in your env, .bashrc or .bash\_profile file. If you have not yet set it, you can do so like this:
 
 ```shell
