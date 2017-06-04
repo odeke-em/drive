@@ -2057,6 +2057,10 @@ func relativePathsOpt(root string, args []string, leastNonExistant bool) ([]stri
 			relPath = ""
 		}
 
+		// This function appears to be meant to return server-side (/-separated) paths.
+		// But its input is client side (maybe / or \) separted paths.
+		// filepath.ToSlash fixes that.
+		relPath = filepath.ToSlash(relPath)
 		relPath = "/" + relPath
 		relPaths = append(relPaths, relPath)
 	}
