@@ -274,7 +274,7 @@ func autoRenameClashes(g *Commands, clashes []*Change) error {
 		for _, r := range renames {
 			g.log.Logf("%v %v -> %v\n", r.originalPath, r.change.Src.Id, r.newName)
 		}
-		status := promptForChanges("Proceed with the changes [Y/N] ? ")
+		status := promptForChanges("Proceed with the changes [Y/n] ? ")
 		if !accepted(status) {
 			return ErrClashFixingAborted
 		}

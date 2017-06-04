@@ -234,7 +234,7 @@ func (g *Commands) reduceForTrash(args []string, opt *trashOpt) error {
 	}
 
 	if opt.permanent && g.opts.canPrompt() {
-		status := promptForChanges("This operation is irreversible. Continue [Y/N] ")
+		status := promptForChanges("This operation is irreversible. Continue [Y/n] ")
 		if !accepted(status) {
 			return status.Error()
 		}
