@@ -299,7 +299,7 @@ func (c *Context) DeInitialize(prompter func(...interface{}) bool, returnOnAnyEr
 	}
 
 	for _, p := range pathsToRemove {
-		if !prompter("remove: ", p, ". This operation is permanent (Y/N) ") {
+		if !prompter("remove: ", p, ". This operation is permanent (Y/n) ") {
 			continue
 		}
 
