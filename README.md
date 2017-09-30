@@ -1420,8 +1420,10 @@ Background sync is not just hard, it is stupid. Here are my technical and philos
 
 ## Known Issues
 
-* Racing conditions occur if remote is being modified while we're trying to update the file. Google Drive provides resource versioning with ETags, use Etags to avoid racy cases.
+* Race conditions occur if remote is being modified while we're trying to update the file. Google Drive provides resource versioning with ETags, use Etags to avoid racy cases.
 * drive rejects reading from namedPipes because they could infinitely hang. See [issue #208](https://github.com/odeke-em/drive/issues/208).
+* It is unsupported on Windows. Some functionality works but it has not been thoroughly tested.
+* Google Drive allows a directory to contain files/directories with the same name. Client doesn't handle these cases gracefully but can offer to 'fix clashes'. See #detecting-and-fixing-clashes . We don't recommend you to use `drive` if you have such files/directories to avoid data loss.
 
 ## Reaching Out
 
