@@ -1,0 +1,6 @@
+include fed2013.tax
+
+Exemptions = 2
+Wages = $10,000,000,000
+Federal income tax withheld = $42
+Effective Rate = 100% * (Total Tax / Total Income)

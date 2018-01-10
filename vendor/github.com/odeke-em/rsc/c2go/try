@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -e
+SRCS="main.go infer2.go conf.go qsort.go printf.go syntax.go write.go"
+HDRS=$(echo ~/g/go/include/link.h ~/g/go/src/pkg/runtime/stack.h ~/g/go/src/cmd/ld/textflag.h ~/g/go/src/cmd/?l/?.out.h)
+LINK=$(echo ~/g/go/src/liblink/{aaa.c,anames5.c,anames6.c,anames8.c,asm5.c,asm6.c,asm8.c,data.c,go.c,ld.c,list5.c,list6.c,list8.c,obj.c,obj5.c,obj6.c,obj8.c,objfile.c,pass.c,pcln.c,sym.c})
+GC=$(echo ~/g/go/src/cmd/gc/{align.c,array.c,bits.c,builtin.c,bv.c,closure.c,const.c,dcl.c,esc.c,export.c,fmt.c,gen.c,init.c,inl.c,lex.c,md5.c,mparith[123].c,obj.c,order.c,racewalk.c,range.c,reflect.c,select.c,sinit.c,subr.c,swt.c,typecheck.c,unsafe.c,walk.c,pgen.c,plive.c,popt.c})
+_6G=$(echo ~/g/go/src/cmd/6g/{cgen.c,galign.c,ggen.c,gobj.c,gsubr.c,peep.c,prog.c,reg.c})
+
+rm -rf /tmp/c2go
+go install ../cc
+go install .
+
+if [ "$1" = gc ]; then
+shift
+go run $SRCS -f fixup.txt -I ~/g/go/src/cmd/6g "$@" $LINK $GC $_6G
+cp liblink/zzz.go /tmp/c2go/liblink
+cp gczzz.go.txt /tmp/c2go/cmd/gc/gczzz.go
+gofmt -s -w /tmp/c2go/liblink/*.go
+(cd /tmp/c2go/liblink && goimports -w .)
+cd /tmp/c2go/liblink; for i in *.go; do cp $i ../cmd/gc/liblink_$i; done
+cd /tmp/c2go/cmd/6g; for i in *.go; do cp $i ../gc/6g_$i; done
+cd /tmp/c2go/cmd/gc
+goimports -w .
+go build -gcflags -e
+#9 diff -c -r /tmp/c2go/liblink liblink2
+exit 0
+fi
+
+rm -rf liblink
+mkdir liblink
+go run $SRCS -o $GOPATH/src -f fixup.txt "$@" $LINK $HDRS
+cp zzz.go.txt liblink/zzz.go
+gofmt -s -w liblink
+goimports -w liblink
+go build -gcflags -e ./liblink/...
+
+# g '\[[0-9]+\]int8' /tmp/c2go/liblink/* || true
+# 9 diff -c -r /tmp/c2go/liblink liblink2
+# g _8 /tmp/c2go/liblink/*6.go || true
+exit 0
+opendiff liblink/asm5.go /tmp/c2go/liblink/asm5.go
+
+go run main.go -I ~/g/go/src/cmd/6g "$@" $LINK $GC ~/g/go/src/cmd/6g/{cgen.c,galign.c,ggen.c,gobj.c,gsubr.c,peep.c,prog.c,reg.c}
+
+go run main.go -I ~/g/go/src/cmd/8g "$@" $LINK $GC ~/g/go/src/cmd/8g/{cgen.c,cgen64.c,galign.c,ggen.c,gobj.c,gsubr.c,peep.c,prog.c,reg.c}
+
+go run main.go -I ~/g/go/src/cmd/5g "$@" $LINK $GC ~/g/go/src/cmd/5g/{cgen.c,cgen64.c,galign.c,ggen.c,gobj.c,gsubr.c,peep.c,prog.c,reg.c}

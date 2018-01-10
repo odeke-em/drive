@@ -1,0 +1,35 @@
+<div id="container">
+
+<div id="center" class="docedit column">
+<form ng-submit="submit()">
+  <table>
+    <tr><td><label for=Tags>Tags:</label> <td><input type=text ng-model="doc.Tags" id=Tags>
+    <tr><td><label for=Desc>Description:</label> <td><input type=text ng-model="doc.Desc" id=Desc>
+    <tr><td><label for=Time>Time:</label> <td><input type=text ng-model="doc.Time" id=Time>
+    <tr><td><label for=Due>Due:</label> <td><input type=text ng-model="doc.Due">
+    <tr><td><label for=Location>Location:</label> <td><input type=text ng-model="doc.Location" id=Location>
+    <tr><td><label for=Text>Text:</label> <td><textarea rows=10 cols=80 ng-model="doc.Text"></textarea>
+    <tr><td><td><input type=submit class="button blue" value="Save Changes">
+    <tr><td><td><b>{{message}}</b>
+  </table>
+</form>
+</div>
+
+<div id="left" class="docinfo column">
+<p>#{{doc.ID}}
+<p>scanned {{doc.Created}}
+<p>{{doc.Pages}} pages
+<p>{{doc.Size}} bytes
+<p ng-show="incoming"><b>{{incoming_count}} incoming</b></p>
+</div>
+
+</div>
+
+<div id="pdfbox">
+<a href="" ng-click="showpdf()" ng-show="!showingpdf"><img src="/scan/doc/{{doc.ID}}/thumb?dpi=72&page=1"></a>
+<button ng-show="showingpdf" ng-click="hidepdf()">Hide PDF</button>
+<div ng-show="pdferror">Error loading PDF.</div>
+<div id="pdftop">
+<div ng-show="showingpdf" style="height: 100%;" id="pdf"></div>
+</div>
+</div>

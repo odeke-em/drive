@@ -1,0 +1,4 @@
+cron:
+- description: Go 1.2 dashboard update
+  url: /admin/dashboard/1.2
+  schedule: every 15 minutes synchronized

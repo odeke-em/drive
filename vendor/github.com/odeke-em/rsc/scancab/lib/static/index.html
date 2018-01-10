@@ -1,0 +1,27 @@
+<!doctype html>
+<html ng-app="scancab">
+<head>
+  <meta charset="utf-8">
+  <title>Scanning Cabinet</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+  <script src="angular/angular.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/incoming.js"></script>
+  <script src="js/edit.js"></script>
+  <script src="js/pdfobject.js"></script>
+  <script src="angular/angular-resource.js"></script>
+</head>
+<body>
+
+<div id="header"><b>scanning cabinet</b>
+<form ng-controller=SearchBoxCtrl ng-submit="search()">
+ <input type=search ng-model=query placeholder="Search terms" autocomplete=on>
+ <!-- <button type=submit ng-click="search()">Search</button> -->
+</form>
+</div>
+
+  <div ng-view></div>
+
+</body>
+</html>

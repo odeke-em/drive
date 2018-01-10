@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<style>
+img { border: 1px solid black; }
+</style>
+<html>
+<pre>{{range .}}
+<a href="/scan/doc/{{.ID}}/edit">{{.ID}} {{.File}} {{.SHA1}} {{.Pages}} {{.Size}}
+<img src="/scan/doc/{{.ID}}/thumb?dpi=72&page=1" /></a>
+{{end}}
+</pre>

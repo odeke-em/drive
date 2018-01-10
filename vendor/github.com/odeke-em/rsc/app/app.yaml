@@ -1,0 +1,22 @@
+# ~/pub/go_appengine/dev_appserver.py --high_replication .
+# ~/pub/go_appengine/appcfg.py --oauth2 update .
+
+application: rsc-swtch-app
+runtime: go
+version: test
+api_version: go1
+
+handlers:
+- url: /\.appfs.*
+  script: _go_app
+  secure: always
+- url: /draft(/.*)?
+  script: _go_app
+  login: required
+- url: /admin(/.*)?
+  script: _go_app
+  login: admin
+
+# MUST BE LAST
+- url: /.*
+  script: _go_app

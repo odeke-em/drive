@@ -1,0 +1,17 @@
+include fed.tax
+
+Standard deduction = $11,400
+Exemption rate = $3,650
+
+Bracket 1 Tax = 10%
+Bracket 1 Limit = $16,750
+Bracket 2 Tax = 15%
+Bracket 2 Limit = $68,000
+Bracket 3 Tax = 25%
+Bracket 3 Limit = $137,300
+Bracket 4 Tax = 28%
+Bracket 4 Limit = $209,250
+Bracket 5 Tax = 33%
+Bracket 5 Limit = $373,650
+Bracket 6 Tax = 35%
+

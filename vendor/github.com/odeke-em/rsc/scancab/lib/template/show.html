@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<style>
+img { border: 1px solid black; }
+</style>
+<html>
+<pre>
+ID: {{.ID}}
+File: {{.File}}
+SHA1: {{.SHA1}}
+Pages: {{.Pages}}
+Size: {{.Size}}
+Created: {{.Created}}
+<a href="/scan/doc/{{.ID}}/pdf">view PDF</a>
+
+<img src="/scan/doc/{{.ID}}/thumb?dpi=72&page=1" />
+
+Tags: {{.Tags}}
+Description: {{.Desc}}
+Time: {{.Time}}
+Due: {{.Due}}
+Location: {{.Location}}
+Text: {{.Text}}
+
+<a href="#/doc/{{.ID}}/edit">edit</a>
