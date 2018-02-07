@@ -185,7 +185,7 @@ drive init --service-account-file <gsa_json_file_path> ~/gdrive
 cd ~/gdrive
 ```
 
-where <gsa_json_file_path> must the GSA credentials in JSON form.
+Where <gsa_json_file_path> must be a [Google Service Account credentials](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#creatinganaccount) file in JSON form.
 This feature was implemented as requested by:
 + https://github.com/odeke-em/drive/issues/879
 
