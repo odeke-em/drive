@@ -29,6 +29,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 
+	"github.com/mxk/go-flowrate/flowrate"
 	"github.com/odeke-em/drive/config"
 	"github.com/odeke-em/statos"
 
@@ -695,6 +696,7 @@ type upsertOpt struct {
 	nonStatable     bool
 	retryCount      int
 	uploadChunkSize int
+	uploadRateLimit int
 }
 
 func togglePropertiesInsertCall(req *drive.FilesInsertCall, mask int) *drive.FilesInsertCall {
@@ -769,6 +771,10 @@ func (r *Remote) upsertByComparison(body io.Reader, args *upsertOpt) (f *File, m
 		body = encR
 	}
 
+	// throttled reader: implement upload bandwidth limit
+	// uploadRateLimit is in KiB/s
+	reader := flowrate.NewReader(body, int64(args.uploadRateLimit*1024))
+
 	if args.src.MimeType != "" {
 		uploaded.MimeType = args.src.MimeType
 	}
@@ -789,7 +795,7 @@ func (r *Remote) upsertByComparison(body io.Reader, args *upsertOpt) (f *File, m
 		req := r.service.Files.Insert(uploaded)
 
 		if !args.src.IsDir && body != nil {
-			req = req.Media(body, mediaOptions...)
+			req = req.Media(reader, mediaOptions...)
 			mediaInserted = true
 		}
 
@@ -811,7 +817,7 @@ func (r *Remote) upsertByComparison(body io.Reader, args *upsertOpt) (f *File, m
 	req.SetModifiedDate(true)
 
 	if args.shouldUploadBody() {
-		req = req.Media(body, mediaOptions...)
+		req = req.Media(reader, mediaOptions...)
 		mediaInserted = true
 	}
 

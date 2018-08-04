@@ -375,6 +375,7 @@ func (g *Commands) remoteMod(change *Change) (err error) {
 
 	args := &upsertOpt{
 		uploadChunkSize: g.opts.UploadChunkSize,
+		uploadRateLimit: g.opts.UploadRateLimit,
 		parentId:        parent.Id,
 		fsAbsPath:       absPath,
 		src:             change.Src,

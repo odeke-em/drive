@@ -666,6 +666,9 @@ drive push -retry-count 4 a/bc/def terms
 the internal Google APIs use a value of 8MiB from constant `googleapi.DefaultUploadChunkSize`.
 Please note that your value has to be a multiple of and atleast the minimum  upload chunksize
 of 256KiB from constant `googleapi.MinUploadChunkSize`. See https://godoc.org/google.golang.org/api/googleapi#pkg-constants
+  If not set and the `-upload-rate-limit` is set, it will be the same as `-upload-rate-limit`.
+
+* To limit the upload bandwidth, please set `-upload-rate-limit=n`. It's in `n` KiB/s, default is unlimited.
 
 ### End to End Encryption
 

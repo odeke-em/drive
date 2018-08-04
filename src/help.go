@@ -256,6 +256,7 @@ const (
 	CLIOptionKeepParent         = "keep-parent"
 
 	CLIOptionUploadChunkSize = "upload-chunk-size"
+	CLIOptionUploadRateLimit = "upload-rate-limit"
 
 	CLIOptionExportsDumpToSameDirectory = "same-exports-dir"
 
