@@ -491,8 +491,8 @@ func (g *Commands) remoteMkdirAllLocked(d string) (*File, error) {
 	}
 
 	// Try the lookup one last time in case a coroutine raced us to it
-        // or if the remote API finally just made the folder available or
-        // if there is a case in which it got untrashed by another client.
+	// or if the remote API finally just made the folder available or
+	// if there is a case in which it got untrashed by another client.
 	retrFile, retryErr := g.rem.FindByPath(d)
 	switch {
 	case retryErr != nil && retryErr != ErrPathNotExists:
@@ -518,7 +518,7 @@ func (g *Commands) remoteMkdirAllLocked(d string) (*File, error) {
 		g.mkdirAllCache.Put(parDirPath, newExpirableCacheValue(parent))
 	}
 
-        // Now create the folder itself
+	// Now create the folder itself
 	remoteFile := &File{
 		IsDir:   true,
 		Name:    last,
@@ -540,7 +540,7 @@ func (g *Commands) remoteMkdirAllLocked(d string) (*File, error) {
 		return cur, ErrPathNotExists
 	}
 
-        // Now index the created folder locally for persistence
+	// Now index the created folder locally for persistence
 	index := cur.ToIndex()
 	wErr := g.context.SerializeIndex(index)
 
@@ -549,8 +549,8 @@ func (g *Commands) remoteMkdirAllLocked(d string) (*File, error) {
 		g.log.LogErrf("serializeIndex %s: %v\n", cur.Name, wErr)
 	}
 
-        // Cache the created folder in RAM so that next
-        // mkdirAll calls can just look it up.
+	// Cache the created folder in RAM so that next
+	// mkdirAll calls can just look it up.
 	g.mkdirAllCache.Put(d, newExpirableCacheValue(cur))
 	return cur, nil
 }
