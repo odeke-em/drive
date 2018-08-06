@@ -113,7 +113,7 @@ type Options struct {
 	// Chunksize is the size per block of data uploaded.
 	// If not set, the default value from googleapi.DefaultUploadChunkSize
 	// is used instead.
-	// If not set and the UploadChunkSize is set, it's same as UploadRateLimit.
+	// If UploadChunkSize is not set yet UploadRateLimit is, UploadChunkSize will be the same as UploadRateLimit.
 	UploadChunkSize int
 
 	// Limit the upload bandwidth to n KiB/s.

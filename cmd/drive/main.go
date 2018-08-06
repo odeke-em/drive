@@ -920,7 +920,7 @@ func (cmd *pushCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
 	cmd.EncryptionPassword = fs.String(drive.CLIEncryptionPassword, "", drive.DescEncryptionPassword)
 	cmd.Files = fs.Bool(drive.CLIOptionFiles, false, "push only files")
 	cmd.Directories = fs.Bool(drive.CLIOptionDirectories, false, "push only directories")
-	cmd.UploadChunkSize = fs.Int(drive.CLIOptionUploadChunkSize, 0, "specifies the size of each data chunk to be uploaded. Only set it if you want a custom chunk size. Otherwise the default value of googleapi.DefaultUploadChunkSize ie 8MiB will be used. However it must be at least googleapi.MinUploadChunkSize ie 256KiB. See https://godoc.org/google.golang.org/api/googleapi#pkg-constants. If not set and the `-upload-rate-limit` is set, it will be the same as `-upload-rate-limit`.")
+	cmd.UploadChunkSize = fs.Int(drive.CLIOptionUploadChunkSize, 0, "specifies the size of each data chunk to be uploaded. Only set it if you want a custom chunk size. Otherwise the default value of googleapi.DefaultUploadChunkSize ie 8MiB will be used. However it must be at least googleapi.MinUploadChunkSize ie 256KiB. See https://godoc.org/google.golang.org/api/googleapi#pkg-constants. If `-upload-chunk-size` is not set yet `-upload-rate-limit` is, `-upload-chunk-size` will be the same as `-upload-rate-limit`.")
 	cmd.UploadRateLimit = fs.Int(drive.CLIOptionUploadRateLimit, 0, "Limit the upload bandwidth to n KiB/s, default is unlimited.")
 
 	return fs
