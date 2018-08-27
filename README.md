@@ -17,7 +17,7 @@
   - [Cross Compilation](#cross-compilation)
   - [API keys](#api-keys)
 - [Usage](#usage)
-  - [Hyphens: - vs --](#-vs--)
+  - [Hyphens: - vs --](#hyphens---vs---)
   - [Initializing](#initializing)
   - [De Initializing](#de-initializing)
   - [Traversal Depth](#traversal-depth)
