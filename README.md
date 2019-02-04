@@ -75,7 +75,7 @@
 
 ### Requirements
 
-go 1.7.X or higher is required. See [here](https://golang.org/doc/install) for installation instructions and platform installers.
+go 1.9.X or higher is required. See [here](https://golang.org/doc/install) for installation instructions and platform installers.
 
 * Make sure to set your GOPATH in your env, .bashrc or .bash\_profile file. If you have not yet set it, you can do so like this:
 
