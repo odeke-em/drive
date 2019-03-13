@@ -45,9 +45,8 @@ var (
 )
 
 const (
-	MimeTypeJoiner      = "-"
-	RemoteDriveRootPath = "My Drive"
-	RemoteSeparator     = "/"
+	MimeTypeJoiner  = "-"
+	RemoteSeparator = "/"
 
 	FmtTimeString           = "2006-01-02T15:04:05.000Z"
 	MsgClashesFixedNowRetry = "Clashes were fixed, please retry the operation"
@@ -231,7 +230,14 @@ func rootLike(p string) bool {
 }
 
 func remoteRootLike(p string) bool {
-	return p == RemoteDriveRootPath
+	switch p {
+	case "My Drive", "Meine Ablage", "Mon Drive", "A miña unidade", "Mi unidad", "माझा ड्राईव्ह", "मेरी डिस्क", "Drive Saya", "Il mio Drive":
+		// TODO: Crowd source more language translations here
+		// as per https://github.com/odeke-em/drive/issues/1015
+		return true
+	default:
+		return false
+	}
 }
 
 type byteDescription func(b int64) string
@@ -702,10 +708,10 @@ func combineIgnores(ignoresPath string) (ignorer func(string) bool, err error) {
 }
 
 var mimeTypeFromQuery = cacher(regMapper(regExtStrMap, map[string]string{
-	"docs":   "application/vnd.google-apps.document",
-	"folder": DriveFolderMimeType,
-	"form":   "application/vnd.google-apps.form",
-	"mp4":    "video/mp4",
+	"docs":                 "application/vnd.google-apps.document",
+	"folder":               DriveFolderMimeType,
+	"form":                 "application/vnd.google-apps.form",
+	"mp4":                  "video/mp4",
 	"slides?|presentation": "application/vnd.google-apps.presentation",
 	"sheet":                "application/vnd.google-apps.spreadsheet",
 	"script":               "application/vnd.google-apps.script",

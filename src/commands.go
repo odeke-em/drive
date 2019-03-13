@@ -113,7 +113,11 @@ type Options struct {
 	// Chunksize is the size per block of data uploaded.
 	// If not set, the default value from googleapi.DefaultUploadChunkSize
 	// is used instead.
+	// If UploadChunkSize is not set yet UploadRateLimit is, UploadChunkSize will be the same as UploadRateLimit.
 	UploadChunkSize int
+
+	// Limit the upload bandwidth to n KiB/s.
+	UploadRateLimit int
 }
 
 func (opts *Options) CryptoEnabled() bool {
@@ -240,6 +244,11 @@ func New(context *config.Context, opts *Options) *Commands {
 			}
 
 			opts.Ignorer = ignorer
+		}
+
+		if opts.UploadChunkSize == 0 {
+			// UploadRateLimit is in KiB/s
+			opts.UploadChunkSize = opts.UploadRateLimit * 1024
 		}
 	}
 

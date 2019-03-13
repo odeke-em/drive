@@ -375,6 +375,7 @@ func (g *Commands) remoteMod(change *Change) (err error) {
 
 	args := &upsertOpt{
 		uploadChunkSize: g.opts.UploadChunkSize,
+		uploadRateLimit: g.opts.UploadRateLimit,
 		parentId:        parent.Id,
 		fsAbsPath:       absPath,
 		src:             change.Src,
@@ -468,60 +469,62 @@ func (g *Commands) remoteDelete(change *Change) error {
 }
 
 func (g *Commands) remoteMkdirAll(d string) (*File, error) {
+	// Rule: Only one goroutine can exclusively invoke this routine
+	// to avoid the plague of remote directory checks returning
+	// ErrPathNotExists due to remote lag, but also racyness
+	// where within the same time another goroutine asking for that
+	// directory, and this manifests in creating repeated directories.
+	// Such as in Issue https://github.com/odeke-em/drive/issues/1016
 	mkdirAllMu.Lock()
+	f, err := g.remoteMkdirAllLocked(d)
+	mkdirAllMu.Unlock()
+	return f, err
+}
 
+func (g *Commands) remoteMkdirAllLocked(d string) (*File, error) {
 	cachedValue, ok := g.mkdirAllCache.Get(d)
-
 	if ok && cachedValue != nil {
 		castF, castOk := cachedValue.Value().(*File)
 		// g.log.Logln("CacheHit", d, castF, castOk)
 		if castOk && castF != nil {
-			mkdirAllMu.Unlock()
 			return castF, nil
 		}
 	}
 
-	// Try the lookup one last time in case a coroutine raced us to it.
+	// Try the lookup one last time in case a coroutine raced us to it
+	// or if the remote API finally just made the folder available or
+	// if there is a case in which it got untrashed by another client.
 	retrFile, retryErr := g.rem.FindByPath(d)
-
-	if retryErr != nil && retryErr != ErrPathNotExists {
-		mkdirAllMu.Unlock()
+	switch {
+	case retryErr != nil && retryErr != ErrPathNotExists:
 		return retrFile, retryErr
-	}
 
-	if retrFile != nil {
-		mkdirAllMu.Unlock()
+	case retrFile != nil:
 		return retrFile, nil
 	}
 
 	parDirPath, last := remotePathSplit(d)
-
 	parent, parentErr := g.rem.FindByPath(parDirPath)
-
-	if parentErr != nil && parentErr != ErrPathNotExists {
-		mkdirAllMu.Unlock()
+	switch {
+	case parentErr != nil && parentErr != ErrPathNotExists:
 		return parent, parentErr
-	}
 
-	mkdirAllMu.Unlock()
-	if parent == nil {
-		parent, parentErr = g.remoteMkdirAll(parDirPath)
+	case parent == nil: // We couldn't find the remote parent so recursively create it
+		parent, parentErr = g.remoteMkdirAllLocked(parDirPath)
 		if parentErr != nil || parent == nil {
 			return parent, parentErr
 		}
+
+	default: // We found the remote parent so cache it
+		g.mkdirAllCache.Put(parDirPath, newExpirableCacheValue(parent))
 	}
 
-	mkdirAllMu.Lock()
-	defer mkdirAllMu.Unlock()
-
-	g.mkdirAllCache.Put(parDirPath, newExpirableCacheValue(parent))
-
+	// Now create the folder itself
 	remoteFile := &File{
 		IsDir:   true,
 		Name:    last,
 		ModTime: time.Now(),
 	}
-
 	args := upsertOpt{
 		uploadChunkSize: g.opts.UploadChunkSize,
 		parentId:        parent.Id,
@@ -534,11 +537,11 @@ func (g *Commands) remoteMkdirAll(d string) (*File, error) {
 	if curErr != nil {
 		return cur, curErr
 	}
-
 	if cur == nil {
 		return cur, ErrPathNotExists
 	}
 
+	// Now index the created folder locally for persistence
 	index := cur.ToIndex()
 	wErr := g.context.SerializeIndex(index)
 
@@ -547,6 +550,8 @@ func (g *Commands) remoteMkdirAll(d string) (*File, error) {
 		g.log.LogErrf("serializeIndex %s: %v\n", cur.Name, wErr)
 	}
 
+	// Cache the created folder in RAM so that next
+	// mkdirAll calls can just look it up.
 	g.mkdirAllCache.Put(d, newExpirableCacheValue(cur))
 	return cur, nil
 }
