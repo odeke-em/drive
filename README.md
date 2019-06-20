@@ -17,7 +17,7 @@
   - [Cross Compilation](#cross-compilation)
   - [API keys](#api-keys)
 - [Usage](#usage)
-  - [Hyphens: - vs --](#-vs--)
+  - [Hyphens: - vs --](#hyphens---vs---)
   - [Initializing](#initializing)
   - [De Initializing](#de-initializing)
   - [Traversal Depth](#traversal-depth)
@@ -75,7 +75,7 @@
 
 ### Requirements
 
-go 1.7.X or higher is required. See [here](https://golang.org/doc/install) for installation instructions and platform installers.
+go 1.9.X or higher is required. See [here](https://golang.org/doc/install) for installation instructions and platform installers.
 
 * Make sure to set your GOPATH in your env, .bashrc or .bash\_profile file. If you have not yet set it, you can do so like this:
 
@@ -185,7 +185,7 @@ drive init --service-account-file <gsa_json_file_path> ~/gdrive
 cd ~/gdrive
 ```
 
-where <gsa_json_file_path> must the GSA credentials in JSON form.
+Where <gsa_json_file_path> must be a [Google Service Account credentials](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#creatinganaccount) file in JSON form.
 This feature was implemented as requested by:
 + https://github.com/odeke-em/drive/issues/879
 

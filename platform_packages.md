@@ -5,9 +5,9 @@
 This includes Arch linux, Antergos, Manjaro, etc. [List](https://wiki.archlinux.org/index.php/Arch_based_distributions_(active))
 
 ```sh
-yaourt -S drive
+yay -S drive-bin
 ```
-Since drive is in the aur, you will need an aur helper such as yaourt above. If you are not fimilar with
+Since drive is in the aur, you will need an aur helper such as yay above. If you are not fimilar with
 a helper, you can find a list [here](https://wiki.archlinux.org/index.php/AUR_helpers#AUR_search.2Fbuild_helpers)
 
 ---
@@ -113,7 +113,7 @@ You may need to install Comodo RSA Domain Validation Secure Server Certificate A
 
 Platform | Author |
 ---------| -------|
-[Arch Linux](https://aur.archlinux.org/packages/drive) | [Jonathan Jenkins](https://github.com/shaggytwodope)
+[Arch Linux](https://aur.archlinux.org/packages/drive-bin) | [Alex Dewar](https://github.com/alexdewar)
 [Debian Linux](http://shaggytwodope.github.io/repo) | [Jonathan Jenkins](https://github.com/shaggytwodope)
 [Automation on Debian Linux](https://gitlab.com/jean-christophe-manciot/dr) | [Jean-Christophe Manciot](https://gitlab.com/jean-christophe-manciot)
 [Fedora Linux](https://copr.fedorainfracloud.org/coprs/vaughan/drive-google/) | [Vaughan Agrez](https://github.com/agrez)
