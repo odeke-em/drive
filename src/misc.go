@@ -572,6 +572,8 @@ var regExtStrMap = map[string]string{
 	"pptx$":  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 	"tsv":    "text/tab-separated-values",
 	"xlsx?":  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
+	"ipynb": "application/vnd.google.colaboratory",
 }
 
 func regMapper(srcMaps ...map[string]string) map[*regexp.Regexp]string {
