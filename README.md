@@ -66,6 +66,7 @@
 - [Uninstalling](#uninstalling)
 - [Applying Patches](#applying-patches)
 - [Why Another Google Drive Client?](#why-another-google-drive-client)
+- [Setting Cron Job](#setting-cron-job)
 - [Known Issues](#known-issues)
 - [Reaching Out](#reaching-out)
 - [Disclaimer](#disclaimer)
@@ -1420,6 +1421,42 @@ Background sync is not just hard, it is stupid. Here are my technical and philos
 * Better I/O scheduling. One of the major goals is to provide better scheduling to improve upload/download times.
 
 * Possibility to support multiple accounts. Pull from or push to multiple Google Drive remotes. Possibility to support multiple backends. Why not to push to Dropbox or Box as well?
+
+## Setting Cron Job
+
+To automate backup to google drive, you can setup cron job. First make sure crontab in installed and service is running.
+
+* Download **drive-linux** binary file from release and copy that to your home folder.
+* Run below command to link Google Drive account and follow instructions.
+```sh
+./drive-linux init
+```
+* Create a file **backup.sh** in your home folder.
+* Add below code to **backup.sh**
+```sh
+#!/bin/bash
+
+BACKUP_DIR="./google_drive"
+PRIVATE_KEY="encryption_password"
+
+echo y | ./drive-linux push -encryption-password "$PRIVATE_KEY" -no-prompt "$BACKUP_DIR"
+
+```
+* Now run below command to allow permission for script execution.
+```sh
+chmod +x backup.sh
+```
+* Create a folder **google_drive** in your home folder.
+* Run below command to add cron job for current user.
+```sh
+sudo crontab -u your_username -e
+```
+* Add below cron job command in crontab editor. To run backup script every 5 minutes.
+```sh
+*/5 * * * * ~/backup.sh
+```
+
+
 
 ## Known Issues
 
