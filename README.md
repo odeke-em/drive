@@ -516,6 +516,8 @@ Like `pull`, you can run it without any arguments to push all of the files from 
 drive push -depth 1 head-folders
 ```
 
+`drive push path` expects the path to be within the context of the drive. If the drive is locally at `~/grdrive`, `drive push ~/xyz.txt` may not execute as desired. Each path should reference a file or directory under the root directory of the mounted directory.
+
 You can also push multiple paths that are children of the root of the mounted drive to a destination,
 
 in relation to issue #612, using key `-destination`:
