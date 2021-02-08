@@ -233,7 +233,7 @@ func remoteRootLike(p string) bool {
 	switch p {
 	case "My Drive", "Meine Ablage", "Mon Drive", "A miña unidade", "Mi unidad",
 		"माझा ड्राईव्ह", "मेरी डिस्क", "Drive Saya", "Il mio Drive", "Mijn Drive",
-		"我的雲端硬碟", "Drive của tôi":
+		"我的雲端硬碟", "Drive của tôi", "Моят диск":
 		// TODO: Crowd source more language translations here
 		// as per https://github.com/odeke-em/drive/issues/1015
 		return true
