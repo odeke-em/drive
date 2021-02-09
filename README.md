@@ -670,7 +670,7 @@ Please note that your value has to be a multiple of and atleast the minimum  upl
 of 256KiB from constant `googleapi.MinUploadChunkSize`. See https://godoc.org/google.golang.org/api/googleapi#pkg-constants.
   If `-upload-chunk-size` is not set yet `-upload-rate-limit` is, `-upload-chunk-size` will be the same as `-upload-rate-limit`.
 
-* To limit the upload bandwidth, please set `-upload-rate-limit=n`. It's in `n` KiB/s, default is unlimited.
+* To limit the upload bandwidth per worker, please set `-upload-rate-limit=n`. It's in `n` KiB/s, default is unlimited. Note that this setting is for per work. You might want to use this flag with setting environment variable `DRIVE_GOMAXPROCS=1`.
 
 ### End to End Encryption
 
