@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -121,6 +122,7 @@ func main() {
 	bindCommandWithAliases(drive.ClashesKey, drive.DescFixClashes, &clashesCmd{}, []string{})
 	bindCommandWithAliases(drive.IdKey, drive.DescId, &idCmd{}, []string{})
 	bindCommandWithAliases(drive.ReportIssueKey, drive.DescReportIssue, &issueCmd{}, []string{})
+	bindCommandWithAliases("watch", "watch files", &watchCmd{}, []string{})
 
 	command.DefineHelp(&helpCmd{})
 	command.ParseAndRun()
@@ -856,6 +858,77 @@ func (pCmd *pullCmd) Run(args []string, definedFlags map[string]*flag.Flag) {
 		exitWithError(drive.New(context, options).PullById())
 	} else {
 		exitWithError(drive.New(context, options).Pull())
+	}
+}
+
+type watchCmd struct {
+	HostAddress *string `json:"host-address"`
+	ById        *bool   `json:"by-id"`
+}
+
+func (cmd *watchCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
+	cmd.HostAddress = fs.String("host-address", "http://localhost:8333", "the host to run the watch server on")
+	cmd.ById = fs.Bool("by-id", false, "resolve paths by id")
+
+	return fs
+}
+
+func (wcmd *watchCmd) Run(args []string, definedFlags map[string]*flag.Flag) {
+	sources, context, path := preprocessArgsByToggle(args, false)
+	cmd := watchCmd{}
+	df := defaultsFiller{
+		command: "watch",
+		from:    *wcmd, to: &cmd,
+		rcSourcePath: context.AbsPathOf(path),
+		definedFlags: definedFlags,
+	}
+
+	if err := fillWithDefaults(df); err != nil {
+		exitWithError(err)
+	}
+
+	options := &drive.Options{
+		Path:    path,
+		Sources: sources,
+	}
+
+	watchReq := &drive.WatchChannel{
+		Address: *wcmd.HostAddress,
+	}
+
+	watchesMap, err := drive.New(context, options).FileWatch(watchReq)
+	exitWithError(err)
+
+	cleanUp := func() error {
+		for key, watch := range watchesMap {
+			watch.Cancel <- struct{}{}
+			log.Printf("%s cancelled..", key)
+		}
+		return nil
+	}
+
+	// In the case of Ctrl-C, let's ensure that we cleanup
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	go func() {
+		_ = <-c
+		cleanUp()
+	}()
+
+	working := true
+	for working {
+		for key, watch := range watchesMap {
+			select {
+			case wres, stillAlive := <-watch.ResponseChan:
+				if !stillAlive {
+					working = false
+					goto nextCycle
+				}
+				log.Printf("key: %s wres: %#v\n", key, wres)
+			}
+		}
+
+	nextCycle:
 	}
 }
 

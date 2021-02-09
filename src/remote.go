@@ -17,6 +17,7 @@ package drive
 import (
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -1222,4 +1223,64 @@ func newOAuthClient(configContext *config.Context) *http.Client {
 	}
 
 	return config.Client(context.Background(), &token)
+}
+
+type WatchRequest struct {
+	FileId  string
+	Request *drive.Channel
+
+	Cancel chan struct{}
+}
+
+type WatchResponse struct {
+	Channel *drive.Channel
+
+	Err    error
+	Cancel chan struct{}
+}
+
+func (rem *Remote) watchForChanges(wreq *WatchRequest) (chan *WatchResponse, error) {
+	watchChan := make(chan *WatchResponse)
+
+	go func() {
+		defer close(watchChan)
+
+		if wreq.Request.Kind == "" {
+			wreq.Request.Kind = "api#channel"
+		}
+		if wreq.Request.Type == "" {
+			wreq.Request.Type = "web_hook"
+		}
+
+		watchCall := rem.service.Files.Watch(wreq.FileId, wreq.Request)
+		cancel := wreq.Cancel
+
+		working := true
+		var pageToken string
+		throttle := time.NewTicker(1e8)
+		for working {
+			select {
+			case <-cancel:
+				working = false
+				break
+			default:
+				wchan, err := watchCall.Do()
+				fmt.Printf("wchan: %#v err: %v\n", wchan, err)
+				watchChan <- &WatchResponse{Err: err, Channel: wchan}
+
+				log.Printf("token: %s\n", pageToken)
+				if wchan != nil {
+					pageToken = wchan.Token
+				}
+
+				if pageToken == "" {
+					working = false
+					break
+				}
+				<-throttle.C
+			}
+		}
+	}()
+
+	return watchChan, nil
 }

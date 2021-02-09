@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -73,6 +74,8 @@ func (ai *addressInfo) ConnectionString() string {
 	return fmt.Sprintf("%s:%s", ai.host, ai.port)
 }
 
+type fileWatchInfo map[string]interface{}
+
 func main() {
 	if envKeySet.PublicKey == "" {
 		errorPrint("publicKey not set. Please set %s in your env.\n", envKeyAlias.PubKeyAlias)
@@ -87,9 +90,13 @@ func main() {
 	m := martini.Classic()
 
 	m.Get("/qr", binding.Bind(meddler.Payload{}), presentQRCode)
-	m.Post("/qr", binding.Bind(meddler.Payload{}), presentQRCode)
+	m.Post("/watch-files", binding.Bind(fileWatchInfo{}), handleFileChanges)
 
 	m.RunOnAddr(envAddrInfo.ConnectionString())
+}
+
+func handleFileChanges(fwi fileWatchInfo, res http.ResponseWriter, req *http.Request) {
+	log.Printf("fwi: %#v", fwi)
 }
 
 func presentQRCode(pl meddler.Payload, res http.ResponseWriter, req *http.Request) {
