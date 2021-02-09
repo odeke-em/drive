@@ -1,0 +1,7514 @@
+
+state 0
+	$accept: .top $end 
+
+	startExpr  shift 3
+	startProg  shift 2
+	.  error
+
+	top  goto 1
+
+state 1
+	$accept:  top.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	top:  startProg.prog tokEOF 
+	prog: .    (3)
+
+	.  reduce 3 (src line 195)
+
+	prog  goto 4
+
+state 3
+	top:  startExpr.cexpr tokEOF 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 5
+	expr_list  goto 6
+	string_list  goto 11
+
+state 4
+	top:  startProg prog.tokEOF 
+	prog:  prog.xdecl 
+	prog:  prog.tokAUTOLIB ( tokName ) 
+
+	tokAUTOLIB  shift 27
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 30
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	tokEOF  shift 25
+	.  error
+
+	fndef  goto 29
+	xdecl  goto 26
+	topdecl  goto 28
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 31
+	structunion  goto 37
+	typespec  goto 33
+
+state 5
+	top:  startExpr cexpr.tokEOF 
+
+	tokEOF  shift 59
+	.  error
+
+
+state 6
+	cexpr:  expr_list.    (6)
+	expr_list:  expr_list., expr 
+
+	,  shift 60
+	.  reduce 6 (src line 209)
+
+
+state 7
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+	expr_list:  expr.    (176)
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 176 (src line 1310)
+
+
+state 8
+	expr:  tokName.    (7)
+
+	.  reduce 7 (src line 220)
+
+
+state 9
+	expr:  tokNumber.    (8)
+
+	.  reduce 8 (src line 226)
+
+
+state 10
+	expr:  tokLitChar.    (9)
+
+	.  reduce 9 (src line 231)
+
+
+state 11
+	expr:  string_list.    (10)
+	string_list:  string_list.tokString 
+
+	tokString  shift 97
+	.  reduce 10 (src line 236)
+
+
+state 12
+	expr:  *.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 98
+	string_list  goto 11
+
+state 13
+	expr:  &.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 99
+	string_list  goto 11
+
+state 14
+	expr:  +.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 100
+	string_list  goto 11
+
+state 15
+	expr:  -.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 101
+	string_list  goto 11
+
+state 16
+	expr:  !.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 102
+	string_list  goto 11
+
+state 17
+	expr:  ~.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 103
+	string_list  goto 11
+
+state 18
+	expr:  tokInc.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 104
+	string_list  goto 11
+
+state 19
+	expr:  tokDec.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 105
+	string_list  goto 11
+
+state 20
+	expr:  tokSizeof.expr 
+	expr:  tokSizeof.( abtype ) 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 107
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 106
+	string_list  goto 11
+
+state 21
+	expr:  tokOffsetof.( abtype , expr ) 
+
+	(  shift 108
+	.  error
+
+
+state 22
+	expr:  (.abtype ) expr 
+	expr:  (.abtype ) braced_init_list 
+	expr:  (.cexpr ) 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLitChar  shift 10
+	tokLong  shift 42
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVaArg  shift 23
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 110
+	expr_list  goto 6
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	string_list  goto 11
+	typeclass  goto 112
+	structunion  goto 37
+	abtype  goto 109
+	type  goto 111
+	typespec  goto 33
+
+state 23
+	expr:  tokVaArg.( expr , abtype ) 
+
+	(  shift 114
+	.  error
+
+
+state 24
+	string_list:  tokString.    (214)
+
+	.  reduce 214 (src line 1529)
+
+
+state 25
+	top:  startProg prog tokEOF.    (1)
+
+	.  reduce 1 (src line 183)
+
+
+state 26
+	prog:  prog xdecl.    (4)
+
+	.  reduce 4 (src line 200)
+
+
+state 27
+	prog:  prog tokAUTOLIB.( tokName ) 
+
+	(  shift 115
+	.  error
+
+
+state 28
+	xdecl:  topdecl.    (133)
+
+	.  reduce 133 (src line 1014)
+
+
+state 29
+	xdecl:  fndef.    (134)
+
+	.  reduce 134 (src line 1020)
+
+
+state 30
+	cname:  tokExtern.    (104)
+	xdecl:  tokExtern.tokString { prog } 
+
+	tokString  shift 116
+	.  reduce 104 (src line 787)
+
+
+state 31
+	topdecl:  typeclass.idecor_list_opt ; 
+	fndef:  typeclass.decor decl_list_opt $$136 block 
+	idecor_list_opt: .    (190)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 121
+	(  shift 122
+	.  reduce 190 (src line 1390)
+
+	decor  goto 118
+	idecor  goto 123
+	idecor_list  goto 119
+	idecor_list_opt  goto 117
+	tag  goto 120
+
+state 32
+	typeclass:  cqname_list.    (124)
+	typeclass:  cqname_list.typespec cqname_list_opt 
+	typeclass:  cqname_list.tname cqtname_list_opt 
+	cqname_list:  cqname_list.cqname 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 124 (src line 910)
+
+	cname  goto 48
+	qname  goto 49
+	tname  goto 127
+	cqname  goto 128
+	structunion  goto 37
+	typespec  goto 126
+
+state 33
+	typeclass:  typespec.cqname_list_opt 
+	cqname_list_opt: .    (198)
+
+	tokAuto  shift 52
+	tokConst  shift 57
+	tokExtern  shift 113
+	tokInline  shift 56
+	tokRegister  shift 55
+	tokStatic  shift 53
+	tokTypedef  shift 54
+	tokVolatile  shift 58
+	.  reduce 198 (src line 1436)
+
+	cname  goto 48
+	qname  goto 49
+	cqname  goto 35
+	cqname_list  goto 130
+	cqname_list_opt  goto 129
+
+state 34
+	typeclass:  tname.cqtname_list_opt 
+	cqtname_list_opt: .    (202)
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokTypedef  shift 54
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 202 (src line 1459)
+
+	cname  goto 48
+	qname  goto 49
+	tname  goto 135
+	cqname  goto 134
+	cqtname  goto 133
+	cqtname_list  goto 132
+	cqtname_list_opt  goto 131
+
+state 35
+	cqname_list:  cqname.    (196)
+
+	.  reduce 196 (src line 1424)
+
+
+state 36
+	typespec:  tokTypeName.    (123)
+
+	.  reduce 123 (src line 894)
+
+
+state 37
+	typespec:  structunion.tag 
+	typespec:  structunion.tag_opt { sudecl_list } 
+	tag_opt: .    (170)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	.  reduce 170 (src line 1277)
+
+	tag  goto 136
+	tag_opt  goto 137
+
+state 38
+	typespec:  tokEnum.tag 
+	typespec:  tokEnum.tag_opt { edecl_list comma_opt } 
+	tag_opt: .    (170)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	.  reduce 170 (src line 1277)
+
+	tag  goto 138
+	tag_opt  goto 139
+
+state 39
+	tname:  tokChar.    (110)
+
+	.  reduce 110 (src line 822)
+
+
+state 40
+	tname:  tokShort.    (111)
+
+	.  reduce 111 (src line 828)
+
+
+state 41
+	tname:  tokInt.    (112)
+
+	.  reduce 112 (src line 833)
+
+
+state 42
+	tname:  tokLong.    (113)
+
+	.  reduce 113 (src line 838)
+
+
+state 43
+	tname:  tokSigned.    (114)
+
+	.  reduce 114 (src line 843)
+
+
+state 44
+	tname:  tokUnsigned.    (115)
+
+	.  reduce 115 (src line 848)
+
+
+state 45
+	tname:  tokFloat.    (116)
+
+	.  reduce 116 (src line 853)
+
+
+state 46
+	tname:  tokDouble.    (117)
+
+	.  reduce 117 (src line 858)
+
+
+state 47
+	tname:  tokVoid.    (118)
+
+	.  reduce 118 (src line 863)
+
+
+state 48
+	cqname:  cname.    (119)
+
+	.  reduce 119 (src line 869)
+
+
+state 49
+	cqname:  qname.    (120)
+
+	.  reduce 120 (src line 875)
+
+
+state 50
+	structunion:  tokStruct.    (140)
+
+	.  reduce 140 (src line 1077)
+
+
+state 51
+	structunion:  tokUnion.    (141)
+
+	.  reduce 141 (src line 1083)
+
+
+state 52
+	cname:  tokAuto.    (102)
+
+	.  reduce 102 (src line 776)
+
+
+state 53
+	cname:  tokStatic.    (103)
+
+	.  reduce 103 (src line 782)
+
+
+state 54
+	cname:  tokTypedef.    (105)
+
+	.  reduce 105 (src line 792)
+
+
+state 55
+	cname:  tokRegister.    (106)
+
+	.  reduce 106 (src line 797)
+
+
+state 56
+	cname:  tokInline.    (107)
+
+	.  reduce 107 (src line 802)
+
+
+state 57
+	qname:  tokConst.    (108)
+
+	.  reduce 108 (src line 809)
+
+
+state 58
+	qname:  tokVolatile.    (109)
+
+	.  reduce 109 (src line 815)
+
+
+state 59
+	top:  startExpr cexpr tokEOF.    (2)
+
+	.  reduce 2 (src line 189)
+
+
+state 60
+	expr_list:  expr_list ,.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 140
+	string_list  goto 11
+
+state 61
+	expr:  expr +.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 141
+	string_list  goto 11
+
+state 62
+	expr:  expr -.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 142
+	string_list  goto 11
+
+state 63
+	expr:  expr *.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 143
+	string_list  goto 11
+
+state 64
+	expr:  expr /.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 144
+	string_list  goto 11
+
+state 65
+	expr:  expr %.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 145
+	string_list  goto 11
+
+state 66
+	expr:  expr tokLsh.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 146
+	string_list  goto 11
+
+state 67
+	expr:  expr tokRsh.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 147
+	string_list  goto 11
+
+state 68
+	expr:  expr <.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 148
+	string_list  goto 11
+
+state 69
+	expr:  expr >.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 149
+	string_list  goto 11
+
+state 70
+	expr:  expr tokLtEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 150
+	string_list  goto 11
+
+state 71
+	expr:  expr tokGtEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 151
+	string_list  goto 11
+
+state 72
+	expr:  expr tokEqEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 152
+	string_list  goto 11
+
+state 73
+	expr:  expr tokNotEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 153
+	string_list  goto 11
+
+state 74
+	expr:  expr &.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 154
+	string_list  goto 11
+
+state 75
+	expr:  expr ^.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 155
+	string_list  goto 11
+
+state 76
+	expr:  expr |.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 156
+	string_list  goto 11
+
+state 77
+	expr:  expr tokAndAnd.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 157
+	string_list  goto 11
+
+state 78
+	expr:  expr tokOrOr.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 158
+	string_list  goto 11
+
+state 79
+	expr:  expr ?.cexpr : expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 159
+	expr_list  goto 6
+	string_list  goto 11
+
+state 80
+	expr:  expr =.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 160
+	string_list  goto 11
+
+state 81
+	expr:  expr tokAddEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 161
+	string_list  goto 11
+
+state 82
+	expr:  expr tokSubEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 162
+	string_list  goto 11
+
+state 83
+	expr:  expr tokMulEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 163
+	string_list  goto 11
+
+state 84
+	expr:  expr tokDivEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 164
+	string_list  goto 11
+
+state 85
+	expr:  expr tokModEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 165
+	string_list  goto 11
+
+state 86
+	expr:  expr tokLshEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 166
+	string_list  goto 11
+
+state 87
+	expr:  expr tokRshEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 167
+	string_list  goto 11
+
+state 88
+	expr:  expr tokAndEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 168
+	string_list  goto 11
+
+state 89
+	expr:  expr tokXorEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 169
+	string_list  goto 11
+
+state 90
+	expr:  expr tokOrEq.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 170
+	string_list  goto 11
+
+state 91
+	expr:  expr (.expr_list_opt ) 
+	expr_list_opt: .    (178)
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 178 (src line 1322)
+
+	expr  goto 7
+	expr_list  goto 172
+	expr_list_opt  goto 171
+	string_list  goto 11
+
+state 92
+	expr:  expr [.cexpr ] 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 173
+	expr_list  goto 6
+	string_list  goto 11
+
+state 93
+	expr:  expr tokInc.    (57)
+
+	.  reduce 57 (src line 471)
+
+
+state 94
+	expr:  expr tokDec.    (58)
+
+	.  reduce 58 (src line 476)
+
+
+state 95
+	expr:  expr tokArrow.tag 
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	.  error
+
+	tag  goto 174
+
+state 96
+	expr:  expr ..tag 
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	.  error
+
+	tag  goto 175
+
+state 97
+	string_list:  string_list tokString.    (215)
+
+	.  reduce 215 (src line 1535)
+
+
+state 98
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  * expr.    (41)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 41 (src line 391)
+
+
+state 99
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  & expr.    (42)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 42 (src line 396)
+
+
+state 100
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  + expr.    (43)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 43 (src line 401)
+
+
+state 101
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  - expr.    (44)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 44 (src line 406)
+
+
+state 102
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  ! expr.    (45)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 45 (src line 411)
+
+
+state 103
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  ~ expr.    (46)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 46 (src line 416)
+
+
+state 104
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  tokInc expr.    (47)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 47 (src line 421)
+
+
+state 105
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  tokDec expr.    (48)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 48 (src line 426)
+
+
+state 106
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  tokSizeof expr.    (49)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 49 (src line 431)
+
+
+state 107
+	expr:  tokSizeof (.abtype ) 
+	expr:  (.abtype ) expr 
+	expr:  (.abtype ) braced_init_list 
+	expr:  (.cexpr ) 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLitChar  shift 10
+	tokLong  shift 42
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVaArg  shift 23
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 110
+	expr_list  goto 6
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	string_list  goto 11
+	typeclass  goto 112
+	structunion  goto 37
+	abtype  goto 176
+	type  goto 111
+	typespec  goto 33
+
+state 108
+	expr:  tokOffsetof (.abtype , expr ) 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  error
+
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 112
+	structunion  goto 37
+	abtype  goto 177
+	type  goto 111
+	typespec  goto 33
+
+state 109
+	expr:  ( abtype.) expr 
+	expr:  ( abtype.) braced_init_list 
+
+	)  shift 178
+	.  error
+
+
+state 110
+	expr:  ( cexpr.) 
+
+	)  shift 179
+	.  error
+
+
+state 111
+	abtype:  type.abdecor 
+	abdecor: .    (85)
+
+	*  shift 181
+	(  shift 183
+	.  reduce 85 (src line 632)
+
+	abdecor  goto 180
+	abdec1  goto 182
+
+state 112
+	type:  typeclass.    (129)
+
+	.  reduce 129 (src line 945)
+
+
+state 113
+	cname:  tokExtern.    (104)
+
+	.  reduce 104 (src line 787)
+
+
+state 114
+	expr:  tokVaArg (.expr , abtype ) 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 184
+	string_list  goto 11
+
+state 115
+	prog:  prog tokAUTOLIB (.tokName ) 
+
+	tokName  shift 185
+	.  error
+
+
+state 116
+	xdecl:  tokExtern tokString.{ prog } 
+
+	{  shift 186
+	.  error
+
+
+state 117
+	topdecl:  typeclass idecor_list_opt.; 
+
+	;  shift 187
+	.  error
+
+
+state 118
+	decor:  decor.( fnarg_list_opt ) 
+	decor:  decor.[ expr_opt ] 
+	idecor:  decor.    (100)
+	idecor:  decor.= init 
+	fndef:  typeclass decor.decl_list_opt $$136 block 
+	decl_list_opt: .    (180)
+
+	,  reduce 100 (src line 763)
+	=  shift 190
+	[  shift 189
+	(  shift 188
+	;  reduce 100 (src line 763)
+	.  reduce 180 (src line 1333)
+
+	decl_list_opt  goto 191
+
+state 119
+	idecor_list:  idecor_list., idecor 
+	idecor_list_opt:  idecor_list.    (191)
+
+	,  shift 192
+	.  reduce 191 (src line 1395)
+
+
+state 120
+	decor:  tag.    (91)
+
+	.  reduce 91 (src line 695)
+
+
+state 121
+	decor:  *.qname_list_opt decor 
+	qname_list_opt: .    (194)
+
+	tokConst  shift 57
+	tokVolatile  shift 58
+	.  reduce 194 (src line 1413)
+
+	qname  goto 195
+	qname_list  goto 194
+	qname_list_opt  goto 193
+
+state 122
+	decor:  (.decor ) 
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 121
+	(  shift 122
+	.  error
+
+	decor  goto 196
+	tag  goto 120
+
+state 123
+	idecor_list:  idecor.    (188)
+
+	.  reduce 188 (src line 1378)
+
+
+state 124
+	tag:  tokName.    (138)
+
+	.  reduce 138 (src line 1064)
+
+
+state 125
+	tag:  tokTypeName.    (139)
+
+	.  reduce 139 (src line 1070)
+
+
+state 126
+	typeclass:  cqname_list typespec.cqname_list_opt 
+	cqname_list_opt: .    (198)
+
+	tokAuto  shift 52
+	tokConst  shift 57
+	tokExtern  shift 113
+	tokInline  shift 56
+	tokRegister  shift 55
+	tokStatic  shift 53
+	tokTypedef  shift 54
+	tokVolatile  shift 58
+	.  reduce 198 (src line 1436)
+
+	cname  goto 48
+	qname  goto 49
+	cqname  goto 35
+	cqname_list  goto 130
+	cqname_list_opt  goto 197
+
+state 127
+	typeclass:  cqname_list tname.cqtname_list_opt 
+	cqtname_list_opt: .    (202)
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokTypedef  shift 54
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 202 (src line 1459)
+
+	cname  goto 48
+	qname  goto 49
+	tname  goto 135
+	cqname  goto 134
+	cqtname  goto 133
+	cqtname_list  goto 132
+	cqtname_list_opt  goto 198
+
+state 128
+	cqname_list:  cqname_list cqname.    (197)
+
+	.  reduce 197 (src line 1430)
+
+
+state 129
+	typeclass:  typespec cqname_list_opt.    (127)
+
+	.  reduce 127 (src line 929)
+
+
+state 130
+	cqname_list:  cqname_list.cqname 
+	cqname_list_opt:  cqname_list.    (199)
+
+	tokAuto  shift 52
+	tokConst  shift 57
+	tokExtern  shift 113
+	tokInline  shift 56
+	tokRegister  shift 55
+	tokStatic  shift 53
+	tokTypedef  shift 54
+	tokVolatile  shift 58
+	.  reduce 199 (src line 1441)
+
+	cname  goto 48
+	qname  goto 49
+	cqname  goto 128
+
+state 131
+	typeclass:  tname cqtname_list_opt.    (128)
+
+	.  reduce 128 (src line 935)
+
+
+state 132
+	cqtname_list:  cqtname_list.cqtname 
+	cqtname_list_opt:  cqtname_list.    (203)
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokTypedef  shift 54
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 203 (src line 1464)
+
+	cname  goto 48
+	qname  goto 49
+	tname  goto 135
+	cqname  goto 134
+	cqtname  goto 199
+
+state 133
+	cqtname_list:  cqtname.    (200)
+
+	.  reduce 200 (src line 1447)
+
+
+state 134
+	cqtname:  cqname.    (121)
+
+	.  reduce 121 (src line 881)
+
+
+state 135
+	cqtname:  tname.    (122)
+
+	.  reduce 122 (src line 887)
+
+
+state 136
+	typespec:  structunion tag.    (145)
+	tag_opt:  tag.    (171)
+
+	{  reduce 171 (src line 1282)
+	.  reduce 145 (src line 1120)
+
+
+state 137
+	typespec:  structunion tag_opt.{ sudecl_list } 
+
+	{  shift 200
+	.  error
+
+
+state 138
+	typespec:  tokEnum tag.    (150)
+	tag_opt:  tag.    (171)
+
+	{  reduce 171 (src line 1282)
+	.  reduce 150 (src line 1152)
+
+
+state 139
+	typespec:  tokEnum tag_opt.{ edecl_list comma_opt } 
+
+	{  shift 201
+	.  error
+
+
+state 140
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+	expr_list:  expr_list , expr.    (177)
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 177 (src line 1316)
+
+
+state 141
+	expr:  expr.+ expr 
+	expr:  expr + expr.    (11)
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 11 (src line 241)
+
+
+state 142
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr - expr.    (12)
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 12 (src line 246)
+
+
+state 143
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr * expr.    (13)
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 13 (src line 251)
+
+
+state 144
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr / expr.    (14)
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 14 (src line 256)
+
+
+state 145
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr % expr.    (15)
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 15 (src line 261)
+
+
+state 146
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr tokLsh expr.    (16)
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 16 (src line 266)
+
+
+state 147
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr tokRsh expr.    (17)
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 17 (src line 271)
+
+
+state 148
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr < expr.    (18)
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 18 (src line 276)
+
+
+state 149
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr > expr.    (19)
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 19 (src line 281)
+
+
+state 150
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr tokLtEq expr.    (20)
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 20 (src line 286)
+
+
+state 151
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr tokGtEq expr.    (21)
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 21 (src line 291)
+
+
+state 152
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr tokEqEq expr.    (22)
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 22 (src line 296)
+
+
+state 153
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr tokNotEq expr.    (23)
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 23 (src line 301)
+
+
+state 154
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr & expr.    (24)
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 24 (src line 306)
+
+
+state 155
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr ^ expr.    (25)
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 25 (src line 311)
+
+
+state 156
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr | expr.    (26)
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 26 (src line 316)
+
+
+state 157
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr tokAndAnd expr.    (27)
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 27 (src line 321)
+
+
+state 158
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr tokOrOr expr.    (28)
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 28 (src line 326)
+
+
+state 159
+	expr:  expr ? cexpr.: expr 
+
+	:  shift 202
+	.  error
+
+
+state 160
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr = expr.    (30)
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 30 (src line 336)
+
+
+state 161
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr tokAddEq expr.    (31)
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 31 (src line 341)
+
+
+state 162
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr tokSubEq expr.    (32)
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 32 (src line 346)
+
+
+state 163
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr tokMulEq expr.    (33)
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 33 (src line 351)
+
+
+state 164
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr tokDivEq expr.    (34)
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 34 (src line 356)
+
+
+state 165
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr tokModEq expr.    (35)
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 35 (src line 361)
+
+
+state 166
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr tokLshEq expr.    (36)
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 36 (src line 366)
+
+
+state 167
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr tokRshEq expr.    (37)
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 37 (src line 371)
+
+
+state 168
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr tokAndEq expr.    (38)
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 38 (src line 376)
+
+
+state 169
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr tokXorEq expr.    (39)
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 39 (src line 381)
+
+
+state 170
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr tokOrEq expr.    (40)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 40 (src line 386)
+
+
+state 171
+	expr:  expr ( expr_list_opt.) 
+
+	)  shift 203
+	.  error
+
+
+state 172
+	expr_list:  expr_list., expr 
+	expr_list_opt:  expr_list.    (179)
+
+	,  shift 60
+	.  reduce 179 (src line 1327)
+
+
+state 173
+	expr:  expr [ cexpr.] 
+
+	]  shift 204
+	.  error
+
+
+state 174
+	expr:  expr tokArrow tag.    (148)
+
+	.  reduce 148 (src line 1139)
+
+
+state 175
+	expr:  expr . tag.    (149)
+
+	.  reduce 149 (src line 1145)
+
+
+state 176
+	expr:  tokSizeof ( abtype.) 
+	expr:  ( abtype.) expr 
+	expr:  ( abtype.) braced_init_list 
+
+	)  shift 205
+	.  error
+
+
+state 177
+	expr:  tokOffsetof ( abtype., expr ) 
+
+	,  shift 206
+	.  error
+
+
+state 178
+	expr:  ( abtype ).expr 
+	expr:  ( abtype ).braced_init_list 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	{  shift 209
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 207
+	braced_init_list  goto 208
+	string_list  goto 11
+
+state 179
+	expr:  ( cexpr ).    (54)
+
+	.  reduce 54 (src line 456)
+
+
+state 180
+	abdec1:  abdecor.[ expr_opt ] 
+	abtype:  type abdecor.    (130)
+
+	[  shift 210
+	.  reduce 130 (src line 958)
+
+
+state 181
+	abdecor:  *.qname_list_opt abdecor 
+	qname_list_opt: .    (194)
+
+	tokConst  shift 57
+	tokVolatile  shift 58
+	.  reduce 194 (src line 1413)
+
+	qname  goto 195
+	qname_list  goto 194
+	qname_list_opt  goto 211
+
+state 182
+	abdecor:  abdec1.    (87)
+	abdec1:  abdec1.( fnarg_list_opt ) 
+
+	(  shift 212
+	.  reduce 87 (src line 646)
+
+
+state 183
+	abdec1:  (.abdecor ) 
+	abdecor: .    (85)
+
+	*  shift 181
+	(  shift 183
+	.  reduce 85 (src line 632)
+
+	abdecor  goto 213
+	abdec1  goto 182
+
+state 184
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  tokVaArg ( expr., abtype ) 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	,  shift 214
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  error
+
+
+state 185
+	prog:  prog tokAUTOLIB ( tokName.) 
+
+	)  shift 215
+	.  error
+
+
+state 186
+	xdecl:  tokExtern tokString {.prog } 
+	prog: .    (3)
+
+	.  reduce 3 (src line 195)
+
+	prog  goto 216
+
+state 187
+	topdecl:  typeclass idecor_list_opt ;.    (132)
+
+	.  reduce 132 (src line 986)
+
+
+state 188
+	decor:  decor (.fnarg_list_opt ) 
+	fnarg_list_opt: .    (186)
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDotDotDot  shift 222
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokName  shift 220
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 186 (src line 1367)
+
+	fnarg  goto 219
+	fnarg_list  goto 218
+	fnarg_list_opt  goto 217
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 112
+	structunion  goto 37
+	type  goto 221
+	typespec  goto 33
+
+state 189
+	decor:  decor [.expr_opt ] 
+	expr_opt: .    (174)
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 174 (src line 1299)
+
+	expr  goto 224
+	expr_opt  goto 223
+	string_list  goto 11
+
+state 190
+	idecor:  decor =.init 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	{  shift 209
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 226
+	init  goto 225
+	braced_init_list  goto 227
+	string_list  goto 11
+
+state 191
+	fndef:  typeclass decor decl_list_opt.$$136 block 
+	decl_list_opt:  decl_list_opt.decl 
+	$$136: .    (136)
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 136 (src line 1030)
+
+	decl  goto 229
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 230
+	structunion  goto 37
+	typespec  goto 33
+	$$136  goto 228
+
+state 192
+	idecor_list:  idecor_list ,.idecor 
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 121
+	(  shift 122
+	.  error
+
+	decor  goto 232
+	idecor  goto 231
+	tag  goto 120
+
+state 193
+	decor:  * qname_list_opt.decor 
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 121
+	(  shift 122
+	.  error
+
+	decor  goto 233
+	tag  goto 120
+
+state 194
+	qname_list:  qname_list.qname 
+	qname_list_opt:  qname_list.    (195)
+
+	tokConst  shift 57
+	tokVolatile  shift 58
+	.  reduce 195 (src line 1418)
+
+	qname  goto 234
+
+state 195
+	qname_list:  qname.    (192)
+
+	.  reduce 192 (src line 1401)
+
+
+state 196
+	decor:  ( decor.) 
+	decor:  decor.( fnarg_list_opt ) 
+	decor:  decor.[ expr_opt ] 
+
+	[  shift 189
+	(  shift 188
+	)  shift 235
+	.  error
+
+
+state 197
+	typeclass:  cqname_list typespec cqname_list_opt.    (125)
+
+	.  reduce 125 (src line 916)
+
+
+state 198
+	typeclass:  cqname_list tname cqtname_list_opt.    (126)
+
+	.  reduce 126 (src line 922)
+
+
+state 199
+	cqtname_list:  cqtname_list cqtname.    (201)
+
+	.  reduce 201 (src line 1453)
+
+
+state 200
+	typespec:  structunion tag_opt {.sudecl_list } 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  error
+
+	sudecl  goto 237
+	sudecl_list  goto 236
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 112
+	structunion  goto 37
+	type  goto 238
+	typespec  goto 33
+
+state 201
+	typespec:  tokEnum tag_opt {.edecl_list comma_opt } 
+
+	tokName  shift 241
+	.  error
+
+	edecl  goto 240
+	edecl_list  goto 239
+
+state 202
+	expr:  expr ? cexpr :.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 242
+	string_list  goto 11
+
+state 203
+	expr:  expr ( expr_list_opt ).    (55)
+
+	.  reduce 55 (src line 461)
+
+
+state 204
+	expr:  expr [ cexpr ].    (56)
+
+	.  reduce 56 (src line 466)
+
+
+state 205
+	expr:  tokSizeof ( abtype ).    (50)
+	expr:  ( abtype ).expr 
+	expr:  ( abtype ).braced_init_list 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	{  shift 209
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 50 (src line 436)
+
+	expr  goto 207
+	braced_init_list  goto 208
+	string_list  goto 11
+
+state 206
+	expr:  tokOffsetof ( abtype ,.expr ) 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 243
+	string_list  goto 11
+
+state 207
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  ( abtype ) expr.    (52)
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 52 (src line 446)
+
+
+state 208
+	expr:  ( abtype ) braced_init_list.    (53)
+
+	.  reduce 53 (src line 451)
+
+
+state 209
+	braced_init_list:  {.} 
+	braced_init_list:  {.binit_list binit } 
+	braced_init_list:  {.binit_list binit , } 
+	binit_list: .    (159)
+
+	}  shift 244
+	.  reduce 159 (src line 1213)
+
+	binit_list  goto 245
+
+state 210
+	abdec1:  abdecor [.expr_opt ] 
+	expr_opt: .    (174)
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 174 (src line 1299)
+
+	expr  goto 224
+	expr_opt  goto 246
+	string_list  goto 11
+
+state 211
+	abdecor:  * qname_list_opt.abdecor 
+	abdecor: .    (85)
+
+	*  shift 181
+	(  shift 183
+	.  reduce 85 (src line 632)
+
+	abdecor  goto 247
+	abdec1  goto 182
+
+state 212
+	abdec1:  abdec1 (.fnarg_list_opt ) 
+	fnarg_list_opt: .    (186)
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDotDotDot  shift 222
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokName  shift 220
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 186 (src line 1367)
+
+	fnarg  goto 219
+	fnarg_list  goto 218
+	fnarg_list_opt  goto 248
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 112
+	structunion  goto 37
+	type  goto 221
+	typespec  goto 33
+
+state 213
+	abdec1:  abdecor.[ expr_opt ] 
+	abdec1:  ( abdecor.) 
+
+	[  shift 210
+	)  shift 249
+	.  error
+
+
+state 214
+	expr:  tokVaArg ( expr ,.abtype ) 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  error
+
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 112
+	structunion  goto 37
+	abtype  goto 250
+	type  goto 111
+	typespec  goto 33
+
+state 215
+	prog:  prog tokAUTOLIB ( tokName ).    (5)
+
+	.  reduce 5 (src line 205)
+
+
+state 216
+	prog:  prog.xdecl 
+	prog:  prog.tokAUTOLIB ( tokName ) 
+	xdecl:  tokExtern tokString { prog.} 
+
+	tokAUTOLIB  shift 27
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 30
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	}  shift 251
+	.  error
+
+	fndef  goto 29
+	xdecl  goto 26
+	topdecl  goto 28
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 31
+	structunion  goto 37
+	typespec  goto 33
+
+state 217
+	decor:  decor ( fnarg_list_opt.) 
+
+	)  shift 252
+	.  error
+
+
+state 218
+	fnarg_list:  fnarg_list., fnarg 
+	fnarg_list_opt:  fnarg_list.    (187)
+
+	,  shift 253
+	.  reduce 187 (src line 1372)
+
+
+state 219
+	fnarg_list:  fnarg.    (184)
+
+	.  reduce 184 (src line 1355)
+
+
+state 220
+	fnarg:  tokName.    (96)
+
+	.  reduce 96 (src line 739)
+
+
+state 221
+	fnarg:  type.abdecor 
+	fnarg:  type.decor 
+	abdecor: .    (85)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 256
+	(  shift 257
+	.  reduce 85 (src line 632)
+
+	abdecor  goto 254
+	abdec1  goto 182
+	decor  goto 255
+	tag  goto 120
+
+state 222
+	fnarg:  tokDotDotDot.    (99)
+
+	.  reduce 99 (src line 756)
+
+
+state 223
+	decor:  decor [ expr_opt.] 
+
+	]  shift 258
+	.  error
+
+
+state 224
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+	expr_opt:  expr.    (175)
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 175 (src line 1304)
+
+
+state 225
+	idecor:  decor = init.    (101)
+
+	.  reduce 101 (src line 769)
+
+
+state 226
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+	init:  expr.    (154)
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 154 (src line 1184)
+
+
+state 227
+	init:  braced_init_list.    (155)
+
+	.  reduce 155 (src line 1190)
+
+
+state 228
+	fndef:  typeclass decor decl_list_opt $$136.block 
+
+	{  shift 260
+	.  error
+
+	block  goto 259
+
+state 229
+	decl_list_opt:  decl_list_opt decl.    (181)
+
+	.  reduce 181 (src line 1338)
+
+
+state 230
+	decl:  typeclass.idecor_list_opt ; 
+	idecor_list_opt: .    (190)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 121
+	(  shift 122
+	.  reduce 190 (src line 1390)
+
+	decor  goto 232
+	idecor  goto 123
+	idecor_list  goto 119
+	idecor_list_opt  goto 261
+	tag  goto 120
+
+state 231
+	idecor_list:  idecor_list , idecor.    (189)
+
+	.  reduce 189 (src line 1384)
+
+
+state 232
+	decor:  decor.( fnarg_list_opt ) 
+	decor:  decor.[ expr_opt ] 
+	idecor:  decor.    (100)
+	idecor:  decor.= init 
+
+	=  shift 190
+	[  shift 189
+	(  shift 188
+	.  reduce 100 (src line 763)
+
+
+state 233
+	decor:  * qname_list_opt decor.    (92)
+	decor:  decor.( fnarg_list_opt ) 
+	decor:  decor.[ expr_opt ] 
+
+	[  shift 189
+	(  shift 188
+	.  reduce 92 (src line 702)
+
+
+state 234
+	qname_list:  qname_list qname.    (193)
+
+	.  reduce 193 (src line 1407)
+
+
+state 235
+	decor:  ( decor ).    (93)
+
+	.  reduce 93 (src line 712)
+
+
+state 236
+	typespec:  structunion tag_opt { sudecl_list.} 
+	sudecl_list:  sudecl_list.sudecl 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	}  shift 262
+	.  error
+
+	sudecl  goto 263
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 112
+	structunion  goto 37
+	type  goto 238
+	typespec  goto 33
+
+state 237
+	sudecl_list:  sudecl.    (208)
+
+	.  reduce 208 (src line 1494)
+
+
+state 238
+	sudecl:  type.sudecor_list_opt ; 
+	sudecor_list_opt: .    (206)
+	tag_opt: .    (170)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 121
+	(  shift 122
+	;  reduce 206 (src line 1483)
+	.  reduce 170 (src line 1277)
+
+	decor  goto 267
+	sudecor  goto 266
+	sudecor_list  goto 265
+	sudecor_list_opt  goto 264
+	tag  goto 269
+	tag_opt  goto 268
+
+state 239
+	typespec:  tokEnum tag_opt { edecl_list.comma_opt } 
+	edecl_list:  edecl_list., edecl 
+	comma_opt: .    (166)
+
+	,  shift 271
+	.  reduce 166 (src line 1253)
+
+	comma_opt  goto 270
+
+state 240
+	edecl_list:  edecl.    (212)
+
+	.  reduce 212 (src line 1517)
+
+
+state 241
+	edecl:  tokName.eqexpr_opt 
+	eqexpr_opt: .    (210)
+
+	=  shift 274
+	.  reduce 210 (src line 1506)
+
+	eqexpr  goto 273
+	eqexpr_opt  goto 272
+
+state 242
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr ? cexpr : expr.    (29)
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 29 (src line 331)
+
+
+state 243
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  tokOffsetof ( abtype , expr.) 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	)  shift 275
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  error
+
+
+state 244
+	braced_init_list:  { }.    (156)
+
+	.  reduce 156 (src line 1196)
+
+
+state 245
+	braced_init_list:  { binit_list.binit } 
+	braced_init_list:  { binit_list.binit , } 
+	binit_list:  binit_list.binit , 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	{  shift 209
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	.  shift 280
+	[  shift 281
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 226
+	init  goto 277
+	binit  goto 276
+	braced_init_list  goto 227
+	initprefix  goto 279
+	initprefix_list  goto 278
+	string_list  goto 11
+
+state 246
+	abdec1:  abdecor [ expr_opt.] 
+
+	]  shift 282
+	.  error
+
+
+state 247
+	abdecor:  * qname_list_opt abdecor.    (86)
+	abdec1:  abdecor.[ expr_opt ] 
+
+	[  shift 210
+	.  reduce 86 (src line 637)
+
+
+state 248
+	abdec1:  abdec1 ( fnarg_list_opt.) 
+
+	)  shift 283
+	.  error
+
+
+state 249
+	abdec1:  ( abdecor ).    (90)
+
+	.  reduce 90 (src line 688)
+
+
+state 250
+	expr:  tokVaArg ( expr , abtype.) 
+
+	)  shift 284
+	.  error
+
+
+state 251
+	xdecl:  tokExtern tokString { prog }.    (135)
+
+	.  reduce 135 (src line 1025)
+
+
+state 252
+	decor:  decor ( fnarg_list_opt ).    (94)
+
+	.  reduce 94 (src line 717)
+
+
+state 253
+	fnarg_list:  fnarg_list ,.fnarg 
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDotDotDot  shift 222
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokName  shift 220
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  error
+
+	fnarg  goto 285
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 112
+	structunion  goto 37
+	type  goto 221
+	typespec  goto 33
+
+state 254
+	abdec1:  abdecor.[ expr_opt ] 
+	fnarg:  type abdecor.    (97)
+
+	[  shift 210
+	.  reduce 97 (src line 745)
+
+
+state 255
+	decor:  decor.( fnarg_list_opt ) 
+	decor:  decor.[ expr_opt ] 
+	fnarg:  type decor.    (98)
+
+	[  shift 189
+	(  shift 188
+	.  reduce 98 (src line 750)
+
+
+state 256
+	abdecor:  *.qname_list_opt abdecor 
+	decor:  *.qname_list_opt decor 
+	qname_list_opt: .    (194)
+
+	tokConst  shift 57
+	tokVolatile  shift 58
+	.  reduce 194 (src line 1413)
+
+	qname  goto 195
+	qname_list  goto 194
+	qname_list_opt  goto 286
+
+state 257
+	abdec1:  (.abdecor ) 
+	decor:  (.decor ) 
+	abdecor: .    (85)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 256
+	(  shift 257
+	.  reduce 85 (src line 632)
+
+	abdecor  goto 213
+	abdec1  goto 182
+	decor  goto 196
+	tag  goto 120
+
+state 258
+	decor:  decor [ expr_opt ].    (95)
+
+	.  reduce 95 (src line 727)
+
+
+state 259
+	fndef:  typeclass decor decl_list_opt $$136 block.    (137)
+
+	.  reduce 137 (src line 1052)
+
+
+state 260
+	block:  {.$$63 block1 } 
+	$$63: .    (63)
+
+	.  reduce 63 (src line 506)
+
+	$$63  goto 287
+
+state 261
+	decl:  typeclass idecor_list_opt.; 
+
+	;  shift 288
+	.  error
+
+
+state 262
+	typespec:  structunion tag_opt { sudecl_list }.    (146)
+
+	.  reduce 146 (src line 1126)
+
+
+state 263
+	sudecl_list:  sudecl_list sudecl.    (209)
+
+	.  reduce 209 (src line 1500)
+
+
+state 264
+	sudecl:  type sudecor_list_opt.; 
+
+	;  shift 289
+	.  error
+
+
+state 265
+	sudecor_list:  sudecor_list., sudecor 
+	sudecor_list_opt:  sudecor_list.    (207)
+
+	,  shift 290
+	.  reduce 207 (src line 1488)
+
+
+state 266
+	sudecor_list:  sudecor.    (204)
+
+	.  reduce 204 (src line 1470)
+
+
+state 267
+	decor:  decor.( fnarg_list_opt ) 
+	decor:  decor.[ expr_opt ] 
+	sudecor:  decor.    (142)
+
+	[  shift 189
+	(  shift 188
+	.  reduce 142 (src line 1089)
+
+
+state 268
+	sudecor:  tag_opt.: expr 
+
+	:  shift 291
+	.  error
+
+
+state 269
+	decor:  tag.    (91)
+	tag_opt:  tag.    (171)
+
+	:  reduce 171 (src line 1282)
+	.  reduce 91 (src line 695)
+
+
+state 270
+	typespec:  tokEnum tag_opt { edecl_list comma_opt.} 
+
+	}  shift 292
+	.  error
+
+
+state 271
+	comma_opt:  ,.    (167)
+	edecl_list:  edecl_list ,.edecl 
+
+	tokName  shift 241
+	.  reduce 167 (src line 1257)
+
+	edecl  goto 293
+
+state 272
+	edecl:  tokName eqexpr_opt.    (152)
+
+	.  reduce 152 (src line 1164)
+
+
+state 273
+	eqexpr_opt:  eqexpr.    (211)
+
+	.  reduce 211 (src line 1511)
+
+
+state 274
+	eqexpr:  =.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 294
+	string_list  goto 11
+
+state 275
+	expr:  tokOffsetof ( abtype , expr ).    (51)
+
+	.  reduce 51 (src line 441)
+
+
+state 276
+	braced_init_list:  { binit_list binit.} 
+	braced_init_list:  { binit_list binit., } 
+	binit_list:  binit_list binit., 
+
+	,  shift 296
+	}  shift 295
+	.  error
+
+
+state 277
+	binit:  init.    (161)
+
+	.  reduce 161 (src line 1224)
+
+
+state 278
+	binit:  initprefix_list.eq_opt init 
+	initprefix_list:  initprefix_list.initprefix 
+	eq_opt: .    (164)
+
+	=  shift 299
+	.  shift 280
+	[  shift 281
+	.  reduce 164 (src line 1244)
+
+	initprefix  goto 298
+	eq_opt  goto 297
+
+state 279
+	initprefix_list:  initprefix.    (168)
+
+	.  reduce 168 (src line 1265)
+
+
+state 280
+	initprefix:  ..tag 
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	.  error
+
+	tag  goto 300
+
+state 281
+	initprefix:  [.expr ] 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 301
+	string_list  goto 11
+
+state 282
+	abdec1:  abdecor [ expr_opt ].    (89)
+
+	.  reduce 89 (src line 677)
+
+
+state 283
+	abdec1:  abdec1 ( fnarg_list_opt ).    (88)
+
+	.  reduce 88 (src line 652)
+
+
+state 284
+	expr:  tokVaArg ( expr , abtype ).    (59)
+
+	.  reduce 59 (src line 481)
+
+
+state 285
+	fnarg_list:  fnarg_list , fnarg.    (185)
+
+	.  reduce 185 (src line 1361)
+
+
+state 286
+	abdecor:  * qname_list_opt.abdecor 
+	decor:  * qname_list_opt.decor 
+	abdecor: .    (85)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 256
+	(  shift 257
+	.  reduce 85 (src line 632)
+
+	abdecor  goto 247
+	abdec1  goto 182
+	decor  goto 233
+	tag  goto 120
+
+state 287
+	block:  { $$63.block1 } 
+	block1: .    (60)
+
+	.  reduce 60 (src line 487)
+
+	block1  goto 302
+
+state 288
+	decl:  typeclass idecor_list_opt ;.    (131)
+
+	.  reduce 131 (src line 966)
+
+
+state 289
+	sudecl:  type sudecor_list_opt ;.    (144)
+
+	.  reduce 144 (src line 1106)
+
+
+state 290
+	sudecor_list:  sudecor_list ,.sudecor 
+	tag_opt: .    (170)
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	*  shift 121
+	(  shift 122
+	.  reduce 170 (src line 1277)
+
+	decor  goto 267
+	sudecor  goto 303
+	tag  goto 269
+	tag_opt  goto 268
+
+state 291
+	sudecor:  tag_opt :.expr 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 304
+	string_list  goto 11
+
+state 292
+	typespec:  tokEnum tag_opt { edecl_list comma_opt }.    (151)
+
+	.  reduce 151 (src line 1158)
+
+
+state 293
+	edecl_list:  edecl_list , edecl.    (213)
+
+	.  reduce 213 (src line 1523)
+
+
+state 294
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+	eqexpr:  = expr.    (153)
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 153 (src line 1176)
+
+
+state 295
+	braced_init_list:  { binit_list binit }.    (157)
+
+	.  reduce 157 (src line 1202)
+
+
+state 296
+	braced_init_list:  { binit_list binit ,.} 
+	binit_list:  binit_list binit ,.    (160)
+
+	}  shift 305
+	.  reduce 160 (src line 1218)
+
+
+state 297
+	binit:  initprefix_list eq_opt.init 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	{  shift 209
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 226
+	init  goto 306
+	braced_init_list  goto 227
+	string_list  goto 11
+
+state 298
+	initprefix_list:  initprefix_list initprefix.    (169)
+
+	.  reduce 169 (src line 1271)
+
+
+state 299
+	eq_opt:  =.    (165)
+
+	.  reduce 165 (src line 1248)
+
+
+state 300
+	initprefix:  . tag.    (147)
+
+	.  reduce 147 (src line 1132)
+
+
+state 301
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+	initprefix:  [ expr.] 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	]  shift 307
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  error
+
+
+state 302
+	block1:  block1.decl 
+	block1:  block1.lstmt 
+	block:  { $$63 block1.} 
+	label_list_opt: .    (182)
+
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	}  shift 310
+	.  reduce 182 (src line 1344)
+
+	decl  goto 308
+	label_list_opt  goto 311
+	lstmt  goto 309
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 230
+	structunion  goto 37
+	typespec  goto 33
+
+state 303
+	sudecor_list:  sudecor_list , sudecor.    (205)
+
+	.  reduce 205 (src line 1477)
+
+
+state 304
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	sudecor:  tag_opt : expr.    (143)
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  reduce 143 (src line 1095)
+
+
+state 305
+	braced_init_list:  { binit_list binit , }.    (158)
+
+	.  reduce 158 (src line 1207)
+
+
+state 306
+	binit:  initprefix_list eq_opt init.    (162)
+
+	.  reduce 162 (src line 1230)
+
+
+state 307
+	initprefix:  [ expr ].    (163)
+
+	.  reduce 163 (src line 1237)
+
+
+state 308
+	block1:  block1 decl.    (61)
+
+	.  reduce 61 (src line 492)
+
+
+state 309
+	block1:  block1 lstmt.    (62)
+
+	.  reduce 62 (src line 500)
+
+
+state 310
+	block:  { $$63 block1 }.    (64)
+
+	.  reduce 64 (src line 511)
+
+
+state 311
+	lstmt:  label_list_opt.stmt 
+	label_list_opt:  label_list_opt.label 
+
+	tokARGBEGIN  shift 319
+	tokSET  shift 316
+	tokUSED  shift 315
+	tokBreak  shift 320
+	tokCase  shift 329
+	tokContinue  shift 321
+	tokDefault  shift 330
+	tokDo  shift 322
+	tokFor  shift 323
+	tokGoto  shift 324
+	tokIf  shift 325
+	tokLitChar  shift 10
+	tokName  shift 331
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokReturn  shift 326
+	tokSwitch  shift 327
+	tokVaArg  shift 23
+	tokWhile  shift 328
+	tokString  shift 24
+	{  shift 260
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	;  shift 314
+	.  error
+
+	expr  goto 7
+	cexpr  goto 318
+	expr_list  goto 6
+	label  goto 313
+	stmt  goto 312
+	block  goto 317
+	string_list  goto 11
+
+state 312
+	lstmt:  label_list_opt stmt.    (68)
+
+	.  reduce 68 (src line 535)
+
+
+state 313
+	label_list_opt:  label_list_opt label.    (183)
+
+	.  reduce 183 (src line 1349)
+
+
+state 314
+	stmt:  ;.    (69)
+
+	.  reduce 69 (src line 543)
+
+
+state 315
+	stmt:  tokUSED.( cexpr ) ; 
+
+	(  shift 332
+	.  error
+
+
+state 316
+	stmt:  tokSET.( cexpr ) ; 
+
+	(  shift 333
+	.  error
+
+
+state 317
+	stmt:  block.    (72)
+
+	.  reduce 72 (src line 559)
+
+
+state 318
+	stmt:  cexpr.; 
+
+	;  shift 334
+	.  error
+
+
+state 319
+	stmt:  tokARGBEGIN.block1 tokARGEND 
+	block1: .    (60)
+
+	.  reduce 60 (src line 487)
+
+	block1  goto 335
+
+state 320
+	stmt:  tokBreak.; 
+
+	;  shift 336
+	.  error
+
+
+state 321
+	stmt:  tokContinue.; 
+
+	;  shift 337
+	.  error
+
+
+state 322
+	stmt:  tokDo.lstmt tokWhile ( cexpr ) ; 
+	label_list_opt: .    (182)
+
+	.  reduce 182 (src line 1344)
+
+	label_list_opt  goto 311
+	lstmt  goto 338
+
+state 323
+	stmt:  tokFor.( cexpr_opt ; cexpr_opt ; cexpr_opt ) lstmt 
+
+	(  shift 339
+	.  error
+
+
+state 324
+	stmt:  tokGoto.tag ; 
+
+	tokName  shift 124
+	tokTypeName  shift 125
+	.  error
+
+	tag  goto 340
+
+state 325
+	stmt:  tokIf.( cexpr ) lstmt 
+	stmt:  tokIf.( cexpr ) lstmt tokElse lstmt 
+
+	(  shift 341
+	.  error
+
+
+state 326
+	stmt:  tokReturn.cexpr_opt ; 
+	cexpr_opt: .    (172)
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 172 (src line 1288)
+
+	expr  goto 7
+	cexpr  goto 343
+	cexpr_opt  goto 342
+	expr_list  goto 6
+	string_list  goto 11
+
+state 327
+	stmt:  tokSwitch.( cexpr ) lstmt 
+
+	(  shift 344
+	.  error
+
+
+state 328
+	stmt:  tokWhile.( cexpr ) lstmt 
+
+	(  shift 345
+	.  error
+
+
+state 329
+	label:  tokCase.expr : 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 346
+	string_list  goto 11
+
+state 330
+	label:  tokDefault.: 
+
+	:  shift 347
+	.  error
+
+
+state 331
+	expr:  tokName.    (7)
+	label:  tokName.: 
+
+	:  shift 348
+	.  reduce 7 (src line 220)
+
+
+state 332
+	stmt:  tokUSED (.cexpr ) ; 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 349
+	expr_list  goto 6
+	string_list  goto 11
+
+state 333
+	stmt:  tokSET (.cexpr ) ; 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 350
+	expr_list  goto 6
+	string_list  goto 11
+
+state 334
+	stmt:  cexpr ;.    (73)
+
+	.  reduce 73 (src line 564)
+
+
+state 335
+	block1:  block1.decl 
+	block1:  block1.lstmt 
+	stmt:  tokARGBEGIN block1.tokARGEND 
+	label_list_opt: .    (182)
+
+	tokARGEND  shift 351
+	tokAuto  shift 52
+	tokChar  shift 39
+	tokConst  shift 57
+	tokDouble  shift 46
+	tokEnum  shift 38
+	tokExtern  shift 113
+	tokFloat  shift 45
+	tokInline  shift 56
+	tokInt  shift 41
+	tokLong  shift 42
+	tokRegister  shift 55
+	tokShort  shift 40
+	tokSigned  shift 43
+	tokStatic  shift 53
+	tokStruct  shift 50
+	tokTypeName  shift 36
+	tokTypedef  shift 54
+	tokUnion  shift 51
+	tokUnsigned  shift 44
+	tokVoid  shift 47
+	tokVolatile  shift 58
+	.  reduce 182 (src line 1344)
+
+	decl  goto 308
+	label_list_opt  goto 311
+	lstmt  goto 309
+	cname  goto 48
+	qname  goto 49
+	tname  goto 34
+	cqname  goto 35
+	cqname_list  goto 32
+	typeclass  goto 230
+	structunion  goto 37
+	typespec  goto 33
+
+state 336
+	stmt:  tokBreak ;.    (75)
+
+	.  reduce 75 (src line 574)
+
+
+state 337
+	stmt:  tokContinue ;.    (76)
+
+	.  reduce 76 (src line 579)
+
+
+state 338
+	stmt:  tokDo lstmt.tokWhile ( cexpr ) ; 
+
+	tokWhile  shift 352
+	.  error
+
+
+state 339
+	stmt:  tokFor (.cexpr_opt ; cexpr_opt ; cexpr_opt ) lstmt 
+	cexpr_opt: .    (172)
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 172 (src line 1288)
+
+	expr  goto 7
+	cexpr  goto 343
+	cexpr_opt  goto 353
+	expr_list  goto 6
+	string_list  goto 11
+
+state 340
+	stmt:  tokGoto tag.; 
+
+	;  shift 354
+	.  error
+
+
+state 341
+	stmt:  tokIf (.cexpr ) lstmt 
+	stmt:  tokIf (.cexpr ) lstmt tokElse lstmt 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 355
+	expr_list  goto 6
+	string_list  goto 11
+
+state 342
+	stmt:  tokReturn cexpr_opt.; 
+
+	;  shift 356
+	.  error
+
+
+state 343
+	cexpr_opt:  cexpr.    (173)
+
+	.  reduce 173 (src line 1293)
+
+
+state 344
+	stmt:  tokSwitch (.cexpr ) lstmt 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 357
+	expr_list  goto 6
+	string_list  goto 11
+
+state 345
+	stmt:  tokWhile (.cexpr ) lstmt 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 358
+	expr_list  goto 6
+	string_list  goto 11
+
+state 346
+	expr:  expr.+ expr 
+	expr:  expr.- expr 
+	expr:  expr.* expr 
+	expr:  expr./ expr 
+	expr:  expr.% expr 
+	expr:  expr.tokLsh expr 
+	expr:  expr.tokRsh expr 
+	expr:  expr.< expr 
+	expr:  expr.> expr 
+	expr:  expr.tokLtEq expr 
+	expr:  expr.tokGtEq expr 
+	expr:  expr.tokEqEq expr 
+	expr:  expr.tokNotEq expr 
+	expr:  expr.& expr 
+	expr:  expr.^ expr 
+	expr:  expr.| expr 
+	expr:  expr.tokAndAnd expr 
+	expr:  expr.tokOrOr expr 
+	expr:  expr.? cexpr : expr 
+	expr:  expr.= expr 
+	expr:  expr.tokAddEq expr 
+	expr:  expr.tokSubEq expr 
+	expr:  expr.tokMulEq expr 
+	expr:  expr.tokDivEq expr 
+	expr:  expr.tokModEq expr 
+	expr:  expr.tokLshEq expr 
+	expr:  expr.tokRshEq expr 
+	expr:  expr.tokAndEq expr 
+	expr:  expr.tokXorEq expr 
+	expr:  expr.tokOrEq expr 
+	expr:  expr.( expr_list_opt ) 
+	expr:  expr.[ cexpr ] 
+	expr:  expr.tokInc 
+	expr:  expr.tokDec 
+	label:  tokCase expr.: 
+	expr:  expr.tokArrow tag 
+	expr:  expr.. tag 
+
+	=  shift 80
+	tokAddEq  shift 81
+	tokSubEq  shift 82
+	tokMulEq  shift 83
+	tokDivEq  shift 84
+	tokModEq  shift 85
+	tokLshEq  shift 86
+	tokRshEq  shift 87
+	tokAndEq  shift 88
+	tokXorEq  shift 89
+	tokOrEq  shift 90
+	?  shift 79
+	:  shift 359
+	tokOrOr  shift 78
+	tokAndAnd  shift 77
+	|  shift 76
+	^  shift 75
+	&  shift 74
+	tokEqEq  shift 72
+	tokNotEq  shift 73
+	<  shift 68
+	>  shift 69
+	tokLtEq  shift 70
+	tokGtEq  shift 71
+	tokLsh  shift 66
+	tokRsh  shift 67
+	+  shift 61
+	-  shift 62
+	*  shift 63
+	/  shift 64
+	%  shift 65
+	.  shift 96
+	[  shift 92
+	(  shift 91
+	tokDec  shift 94
+	tokInc  shift 93
+	tokArrow  shift 95
+	.  error
+
+
+state 347
+	label:  tokDefault :.    (66)
+
+	.  reduce 66 (src line 524)
+
+
+state 348
+	label:  tokName :.    (67)
+
+	.  reduce 67 (src line 529)
+
+
+state 349
+	stmt:  tokUSED ( cexpr.) ; 
+
+	)  shift 360
+	.  error
+
+
+state 350
+	stmt:  tokSET ( cexpr.) ; 
+
+	)  shift 361
+	.  error
+
+
+state 351
+	stmt:  tokARGBEGIN block1 tokARGEND.    (74)
+
+	.  reduce 74 (src line 569)
+
+
+state 352
+	stmt:  tokDo lstmt tokWhile.( cexpr ) ; 
+
+	(  shift 362
+	.  error
+
+
+state 353
+	stmt:  tokFor ( cexpr_opt.; cexpr_opt ; cexpr_opt ) lstmt 
+
+	;  shift 363
+	.  error
+
+
+state 354
+	stmt:  tokGoto tag ;.    (79)
+
+	.  reduce 79 (src line 600)
+
+
+state 355
+	stmt:  tokIf ( cexpr.) lstmt 
+	stmt:  tokIf ( cexpr.) lstmt tokElse lstmt 
+
+	)  shift 364
+	.  error
+
+
+state 356
+	stmt:  tokReturn cexpr_opt ;.    (82)
+
+	.  reduce 82 (src line 615)
+
+
+state 357
+	stmt:  tokSwitch ( cexpr.) lstmt 
+
+	)  shift 365
+	.  error
+
+
+state 358
+	stmt:  tokWhile ( cexpr.) lstmt 
+
+	)  shift 366
+	.  error
+
+
+state 359
+	label:  tokCase expr :.    (65)
+
+	.  reduce 65 (src line 518)
+
+
+state 360
+	stmt:  tokUSED ( cexpr ).; 
+
+	;  shift 367
+	.  error
+
+
+state 361
+	stmt:  tokSET ( cexpr ).; 
+
+	;  shift 368
+	.  error
+
+
+state 362
+	stmt:  tokDo lstmt tokWhile (.cexpr ) ; 
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  error
+
+	expr  goto 7
+	cexpr  goto 369
+	expr_list  goto 6
+	string_list  goto 11
+
+state 363
+	stmt:  tokFor ( cexpr_opt ;.cexpr_opt ; cexpr_opt ) lstmt 
+	cexpr_opt: .    (172)
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 172 (src line 1288)
+
+	expr  goto 7
+	cexpr  goto 343
+	cexpr_opt  goto 370
+	expr_list  goto 6
+	string_list  goto 11
+
+state 364
+	stmt:  tokIf ( cexpr ).lstmt 
+	stmt:  tokIf ( cexpr ).lstmt tokElse lstmt 
+	label_list_opt: .    (182)
+
+	.  reduce 182 (src line 1344)
+
+	label_list_opt  goto 311
+	lstmt  goto 371
+
+state 365
+	stmt:  tokSwitch ( cexpr ).lstmt 
+	label_list_opt: .    (182)
+
+	.  reduce 182 (src line 1344)
+
+	label_list_opt  goto 311
+	lstmt  goto 372
+
+state 366
+	stmt:  tokWhile ( cexpr ).lstmt 
+	label_list_opt: .    (182)
+
+	.  reduce 182 (src line 1344)
+
+	label_list_opt  goto 311
+	lstmt  goto 373
+
+state 367
+	stmt:  tokUSED ( cexpr ) ;.    (70)
+
+	.  reduce 70 (src line 549)
+
+
+state 368
+	stmt:  tokSET ( cexpr ) ;.    (71)
+
+	.  reduce 71 (src line 554)
+
+
+state 369
+	stmt:  tokDo lstmt tokWhile ( cexpr.) ; 
+
+	)  shift 374
+	.  error
+
+
+state 370
+	stmt:  tokFor ( cexpr_opt ; cexpr_opt.; cexpr_opt ) lstmt 
+
+	;  shift 375
+	.  error
+
+
+state 371
+	stmt:  tokIf ( cexpr ) lstmt.    (80)
+	stmt:  tokIf ( cexpr ) lstmt.tokElse lstmt 
+
+	tokElse  shift 376
+	.  reduce 80 (src line 605)
+
+
+state 372
+	stmt:  tokSwitch ( cexpr ) lstmt.    (83)
+
+	.  reduce 83 (src line 620)
+
+
+state 373
+	stmt:  tokWhile ( cexpr ) lstmt.    (84)
+
+	.  reduce 84 (src line 625)
+
+
+state 374
+	stmt:  tokDo lstmt tokWhile ( cexpr ).; 
+
+	;  shift 377
+	.  error
+
+
+state 375
+	stmt:  tokFor ( cexpr_opt ; cexpr_opt ;.cexpr_opt ) lstmt 
+	cexpr_opt: .    (172)
+
+	tokLitChar  shift 10
+	tokName  shift 8
+	tokNumber  shift 9
+	tokOffsetof  shift 21
+	tokVaArg  shift 23
+	tokString  shift 24
+	&  shift 13
+	+  shift 14
+	-  shift 15
+	*  shift 12
+	!  shift 16
+	~  shift 17
+	tokSizeof  shift 20
+	(  shift 22
+	tokDec  shift 19
+	tokInc  shift 18
+	.  reduce 172 (src line 1288)
+
+	expr  goto 7
+	cexpr  goto 343
+	cexpr_opt  goto 378
+	expr_list  goto 6
+	string_list  goto 11
+
+state 376
+	stmt:  tokIf ( cexpr ) lstmt tokElse.lstmt 
+	label_list_opt: .    (182)
+
+	.  reduce 182 (src line 1344)
+
+	label_list_opt  goto 311
+	lstmt  goto 379
+
+state 377
+	stmt:  tokDo lstmt tokWhile ( cexpr ) ;.    (77)
+
+	.  reduce 77 (src line 584)
+
+
+state 378
+	stmt:  tokFor ( cexpr_opt ; cexpr_opt ; cexpr_opt.) lstmt 
+
+	)  shift 380
+	.  error
+
+
+state 379
+	stmt:  tokIf ( cexpr ) lstmt tokElse lstmt.    (81)
+
+	.  reduce 81 (src line 610)
+
+
+state 380
+	stmt:  tokFor ( cexpr_opt ; cexpr_opt ; cexpr_opt ).lstmt 
+	label_list_opt: .    (182)
+
+	.  reduce 182 (src line 1344)
+
+	label_list_opt  goto 311
+	lstmt  goto 381
+
+state 381
+	stmt:  tokFor ( cexpr_opt ; cexpr_opt ; cexpr_opt ) lstmt.    (78)
+
+	.  reduce 78 (src line 589)
+
+
+101 terminals, 67 nonterminals
+216 grammar rules, 382/2000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+116 working sets used
+memory: parser 503/30000
+294 extra closures
+2799 shift entries, 7 exceptions
+214 goto entries
+259 entries saved by goto default
+Optimizer space used: output 1452/30000
+1452 table entries, 420 zero
+maximum spread: 101, maximum offset: 380

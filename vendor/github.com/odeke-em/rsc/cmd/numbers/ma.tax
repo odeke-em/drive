@@ -1,0 +1,54 @@
+# This file serves mainly as an example of a complicated numbers program.
+# It is a rough calculation of Massachusetts State Income Tax as defined circa 2012.
+# It expects to be parameterized with year-specific rates using an additional
+# input file, such as ma2013.tax.
+#
+# Absolutely no claim is being made that this is an accurate computation of
+# Massachusetts State Income Tax. The procedure that generated this file was:
+#
+#	1. Type in rules, more or less.
+#	2. Find and fix mistakes until result is somewhat like a few actual
+#	   returns created by real tax software.
+#
+# The result is certainly wrong. Perhaps it is close to right for some inputs,
+# but perhaps not. For real tax preparation, use real tax software or a real
+# tax preparer.
+
+# TODO: Move most of these constants into year-specific files.
+
+MA Total Income = Total Income
+MA Personal Exemption ?= $8,800 # TODO: Is this max(Exemptions, 2) * $4,400 ?
+MA Dependent Exemption = $1,000 * max(0, Exemptions - 2)
+MA Total Exemptions = MA Personal Exemption + MA Dependent Exemption
+MA Rental deduction = $0
+MA Dependent deduction = min(max(0, Exemptions - 2), 2) * $3,600
+MA Total Deductions =
+	Amount paid to social security +
+	Amount spouse paid to social security +
+	MA Rental deduction +
+	MA Dependent deduction
+MA Low Income After Deductions = max(MA Low Income - MA Total Deductions, $0)
+print(MA Low Income After Exemptions)
+MA Low Income After Exemptions = max(MA Low Income After Deductions - MA Total Exemptions, $0)
+MA Interest and Dividend Income ?= $0
+MA Total Taxable Low Income = MA Low Income After Exemptions + MA Interest and Dividend Income
+MA Tax on Low Income = MA Total Taxable Low Income * MA Low Tax Rate
+MA High Income ?= Short-term capital gain
+MA Tax on High Income = MA High Income * 12%
+MA Tax on Long-Term Capital Gain = Long-term capital gain * MA Low Tax Rate
+MA Total Income Tax =
+	MA Tax on Low Income +
+	MA Tax on High Income +
+	MA Tax on Long-Term Capital Gain
+MA Income Tax After Credits = MA Total Income Tax
+MA Total Tax =
+	MA Income Tax After Credits +
+	MA Out-of-state Use tax
+MA Low Income ?= MA Wages
+MA Wages ?= Wages
+MA Total Payments = MA Income Tax Withheld
+print(MA Total Tax)
+print(MA Total Payments)
+MA Refund = max(MA Total Payments - MA Total Tax, $0)
+MA Amount Due = max(MA Total Tax - MA Total Payments, $0)
+

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<style>
+img { border: 1px solid black; }
+</style>
+<html>
+<pre>
+ID: {{.ID}}
+File: {{.File}}
+SHA1: {{.SHA1}}
+Pages: {{.Pages}}
+Size: {{.Size}}
+Created: {{.Created}}
+<a href="/scan/doc/{{.ID}}/pdf">view PDF</a>
+
+<img src="/scan/doc/{{.ID}}/thumb?dpi=72&page=1" />
+
+<form method="post">
+  <label for="Tags">Tags:</label> <input type=text name="Tags" id="Tags">
+  <label for="Desc">Description:</label> <input type=text name="Desc" id="Desc">
+  <label for="Time">Time:</label> <input type=text name="Time" id="Time">
+  <label for="Due">Due:</label> <input type=text name="Due" id="Due">
+  <label for="Location">Location:</label> <input type=text name="Location" id="Location">
+  <label for="Text">Text:</label>
+  <textarea id="Text" name="Text" rows="10" cols="80">
+  </textarea>
+  
+  <input type="submit" value="Save">
+</form>

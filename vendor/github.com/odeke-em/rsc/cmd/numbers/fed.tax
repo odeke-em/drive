@@ -1,0 +1,273 @@
+# This file serves mainly as an example of a complicated numbers program.
+# It is a rough calculation of US Federal Income Tax as defined circa 2010.
+# It expects to be parameterized with year-specific rates using an additional
+# input file, such as fed2010.tax.
+#
+# Absolutely no claim is being made that this is an accurate computation of
+# US Federal Income Tax. The procedure that generated this file was:
+#
+#	1. Type in Form 1040 rules, more or less.
+#	2. Find and fix mistakes until result is somewhat like a few actual
+#	   returns created by real tax software.
+#
+# The result is certainly wrong. Perhaps it is close to right for some inputs,
+# but perhaps not. For real tax preparation, use real tax software or a real
+# tax preparer.
+
+# Line numbers are from 2010 Form 1040.
+
+# Exemptions
+Exemptions ?= 1 # line 6d
+
+# Income
+Wages ?= $0 # line 7
+Taxable interest ?= $0 # line 8a
+Tax-exempt interest ?= $0 # line 8b
+use(Tax-exempt interest)
+Ordinary dividends ?= $0 # line 9a
+Qualified dividends ?= $0 # line 9b
+use(Qualified dividends)
+Taxable refunds ?= $0 # line 10
+Alimony received ?= $0 # line 11
+Business income ?= $0 # line 12
+Long-term capital gain ?= $0 # line 13
+Short-term capital gain ?= $0 # line 13
+Capital gain = max(Long-term capital gain + Short-term capital gain, Capital gain loss floor)
+Capital gain loss floor ?= -$3,000
+Other gains ?= $0 # line 14
+IRA distributions ?= $0 # line 15a
+Taxable IRA distributions ?= $0 # line 15b
+check(IRA distributions >= Taxable IRA distributions)
+Pensions and annuities ?= $0 # line 16a
+Taxable pensions and annuities ?= $0 # line 16b
+check(Pensions and annuities >= Taxable pensions and annuities)
+Rental real estate ?= $0 # line 17
+Farm income ?= $0 # line 18
+Unemployment compensation ?= $0 # line 19
+Social security benefits ?= $0 # line 20a
+Taxable social security benefits ?= $0 # line 20b
+check(Social security benefits >= Taxable social security benefits)
+Other income ?= $0 # line 21
+Total Income = # line 22
+	Wages +
+	Taxable interest +
+	Ordinary dividends +
+	Taxable refunds +
+	Alimony received +
+	Business income +
+	Capital gain +
+	Other gains +
+	Taxable IRA distributions +
+	Taxable pensions and annuities +
+	Rental real estate +
+	Farm income +
+	Unemployment compensation +
+	Taxable social security benefits +
+	Other income
+
+# Adjusted Gross Income
+Educator expenses ?= $0 # line 23
+Certain business expenses ?= $0 # line 24
+Health savings account deduction ?= $0 # line 25
+Moving expenses ?= $0 # line 26
+One half of self-employment tax ?= $0 # line 27
+Self-employed qualified plans ?= $0 # line 28
+Self-employed health insurance deduction ?= $0 # line 29
+Penalty on early withdrawal of savings ?= $0 # line 30
+Alimony paid ?= $0 # line 31a
+IRA deduction ?= $0 # line 32
+Student loan interest deduction ?= $0 # line 33
+Tuition and fees ?= $0 # line 34
+Domestic production activities deduction ?= $0 # line 35
+Total Deductions = # line 36
+	Educator expenses +
+	Certain business expenses +
+	Health savings account deduction +
+	Moving expenses +
+	One half of self-employment tax +
+	Self-employed qualified plans +
+	Self-employed health insurance deduction +
+	Penalty on early withdrawal of savings +
+	Alimony paid +
+	IRA deduction +
+	Student loan interest deduction +
+	Tuition and fees +
+	Domestic production activities deduction
+Adjusted Gross Income = Total Income - Total Deductions # line 37
+
+Standard deduction ?= $0 # line 40b
+Itemizing deductions ?= Itemized deductions > Standard deduction
+Deductions = cond(Itemizing deductions, Itemized deductions, Standard deduction) # line 40
+Income after Deductions = max($0, Adjusted Gross Income - Deductions) # line 41
+Exemption Total = Exemptions * Exemption rate # line 42
+Taxable Income = max($0, Income after Deductions - Exemption Total) # line 43
+# Alternative Minimum Tax ?= $0 # line 45
+Foreign tax credit ?= $0 # line 47
+Child care credit ?= $0 # line 48
+Education credit ?= $0 # line 49
+Retirement savings contributions credit ?= $0 # line 50
+Child tax credit ?= $0 # line 51
+Residential energy credit ?= $0 # line 52
+Other credits ?= $0 # line 53
+Total Credits = # line 54
+	Foreign tax credit +
+	Child care credit +
+	Education credit +
+	Retirement savings contributions credit +
+	Child tax credit +
+	Residential energy credit +
+	Other credits
+Tax After Credits = max(Tax + Alternative Minimum Tax - Total Credits, $0) # line 55
+
+# Other taxes
+Self-employment tax ?= $0 # line 56
+Unreported social security and Medicare tax ?= $0 # line 57
+Additional tax on IRAs ?= $0 # line 58
+Other taxes ?= $0 # line 59
+Total Tax = # line 60
+	Tax After Credits +
+	Self-employment tax +
+	Unreported social security and Medicare tax +
+	Additional tax on IRAs +
+	Other taxes
+
+# Payments
+Federal income tax withheld ?= $0 # line 61
+Estimated tax payments ?= $0 # line 62a
+Amount applied from last year's return ?= $0 # line 62b
+Making work pay credit ?= $0 # line 63
+Earned income credit ?= $0 # line 64a
+Additional child tax credit ?= $0 # line 65
+American opportunity credit ?= $0 # line 66
+First-time homebuyer credit ?= $0 # line 67
+Amount paid with request for extension to file ?= $0 # line 68
+Excess social security tax withheld ?= $0 # line 69
+Credit for federal tax on fuels ?= $0 # line 70
+Other payment credits ?= $0 # line 71
+Total Payments = # line 72
+	Federal income tax withheld +
+	Estimated tax payments +
+	Amount applied from last year's return +
+	Making work pay credit +
+	Earned income credit +
+	Additional child tax credit +
+	American opportunity credit +
+	First-time homebuyer credit +
+	Amount paid with request for extension to file +
+	Excess social security tax withheld +
+	Credit for federal tax on fuels +
+	Other payment credits
+
+# Itemized Deductions
+Medical expenses ?= $0 # line 1
+Allowed Medical Expenses = max(Medical expenses - Adjusted Gross Income * 7.5%, $0) # line 4
+
+State and local income taxes ?= $0 # line 5a
+State and local sales taxes ?= $0 # line 5b
+State and local taxes = max(State and local income taxes, State and local sales taxes) # line 5
+Real estate taxes ?= $0 # line 6
+New motor vehicle taxes ?= $0 # line 7
+Other paid taxes ?= $0 # line 8
+Taxes Paid = # line 9
+	State and local taxes +
+	Real estate taxes +
+	New motor vehicle taxes +
+	Other paid taxes
+
+Home mortgage interest and points on Form 1098 ?= $0 # line 10
+Home mortgage interest not on Form 1098 ?= $0 # line 11
+Points not reported on Form 1098 ?= $0 # line 12
+Mortgage insurance premiums ?= $0 # line 13
+Investment interest ?= $0 # line 14
+Interest Paid = # line 15
+	Home mortgage interest and points on Form 1098 +
+	Home mortgage interest not on Form 1098 +
+	Points not reported on Form 1098 +
+	Mortgage insurance premiums +
+	Investment interest
+
+Cash gifts to charity ?= $0 # line 16
+Non-cash gifts to charity ?= $0 # line 17
+Carryover from prior year ?= $0 # line 18
+Gifts to Charity = # line 19
+	Cash gifts to charity +
+	Non-cash gifts to charity +
+	Carryover from prior year
+
+Casualty or theft loss ?= $0 # line 20
+
+Unreimbursed employee expenses ?= $0 # line 21
+Tax preparation fees ?= $0 # line 22
+Other expenses ?= $0 # line 23
+Job expenses = # line 24
+	Unreimbursed employee expenses +
+	Tax preparation fees +
+	Other expenses
+Allowed Job Expenses = max(Job expenses - Adjusted Gross Income * 2%, $0) # line 27
+
+Other deductions ?= $0 # line 28
+
+Itemized deductions = # line 29
+	Allowed Medical Expenses +
+	Taxes Paid +
+	Interest Paid +
+	Gifts to Charity +
+	Casualty or theft loss +
+	Allowed Job Expenses +
+	Other deductions
+ 
+# Attempt at AMT; incomplete, always 0.
+
+# Line numbers from 2012 form 6251
+AMT Base = cond(Itemizing deductions, Income after Deductions, Adjusted Gross Income) # line 1
+AMT Medical = max($0, min(Allowed Medical Expenses, 2.5% * Adjusted Gross Income)) # line 2
+AMT Taxes Paid = Taxes Paid # line 3
+AMT Home mortgage interest adjustment = $0 # line 4
+AMT Misc deductions = Allowed Job Expenses # line 5
+AMT Tax refund = Taxable refunds # line 7
+AMT Income =
+	AMT Base +
+	AMT Medical +
+	AMT Taxes Paid +
+	AMT Home mortgage interest adjustment +
+	AMT Misc deductions +
+	AMT Tax refund
+
+AMT Exemption Base = $78,750
+AMT Exemption Limit = $150,000
+AMT Phaseout Rate = 25%
+AMT Exemption = max(AMT Exemption Base, AMT Exemption Base - (AMT Income - AMT Exemption Limit) * AMT Phaseout Rate) # line 29
+AMT Rate = 0
+
+# Conservative estimate
+AMT = AMT Rate * max(AMT Income - AMT Exemption, $0)
+Alternative Minimum Tax = max(AMT - Tax, $0)
+
+Bracket 1 Income = min(Taxable Income, Bracket 1 Limit)
+Bracket 2 Income = max($0, min(Taxable Income, Bracket 2 Limit) - Bracket 1 Limit)
+Bracket 3 Income = max($0, min(Taxable Income, Bracket 3 Limit) - Bracket 2 Limit)
+Bracket 4 Income = max($0, min(Taxable Income, Bracket 4 Limit) - Bracket 3 Limit)
+Bracket 5 Income = max($0, min(Taxable Income, Bracket 5 Limit) - Bracket 4 Limit)
+Bracket 6 Income = max($0, min(Taxable Income, Bracket 6 Limit) - Bracket 5 Limit)
+Bracket 7 Income = max($0, Taxable Income - Bracket 6 Limit)
+
+# Fake bracket 7 until 2013
+Bracket 6 Limit ?= $1,000,000,000,000
+Bracket 7 Tax ?= Bracket 6 Tax
+
+Tax = Bracket 1 Income * Bracket 1 Tax +
+	Bracket 2 Income * Bracket 2 Tax +
+	Bracket 3 Income * Bracket 3 Tax +
+	Bracket 4 Income * Bracket 4 Tax +
+	Bracket 5 Income * Bracket 5 Tax +
+	Bracket 6 Income * Bracket 6 Tax +
+	Bracket 7 Income * Bracket 7 Tax
+
+print(Total Income)
+print(Adjusted Gross Income)
+print(Taxable Income)
+print(Total Tax)
+print(Total Payments)
+
+Refund = max(Total Payments - Total Tax, $0)
+Amount Due = max(Total Tax - Total Payments, $0)

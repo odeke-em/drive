@@ -3,7 +3,11 @@ language: go
 go:
   - 1.9
   - tip
+before_install:
+  - go get -v -u github.com/golang/dep/cmd/dep
 install:
-  - go get -t ./...
+  - dep ensure -v
+  - go build -o ./bin/drive-google -v ./drive-google
+  - go build -o ./bin/drive-gen -v ./drive-gen
 script:
   go test -v -race -cover ./src/...

@@ -1,0 +1,139 @@
+/* app css stylesheet */
+body {
+	min-width: 400px;
+}
+
+#container {
+	padding-left: 200px;
+	overflow: hidden;
+}
+
+#container .column {
+	position: relative;
+	float: left;
+	padding-bottom: 1001em;
+	margin-bottom: -1000em;
+}
+
+#header {
+	background-color: #ffc;
+	padding-bottom: 5px;
+}
+
+#center {
+	padding: 10px 20px;
+	width: 100%;
+}
+
+#left {
+	width: 180px;
+	padding: 0 10px;
+	right: 240px;
+	margin-left: -100%;
+}
+
+td { vertical-align: top; }
+
+.docinfo {
+	font-size: 120%;
+}
+
+.docinfo p {
+	padding-bottom: 1em;
+	font-family: sans-serif;
+}
+
+.docedit {
+	border-left: 1px solid black;
+}
+
+form input[type=text] {
+	width: 100%;
+}
+
+form input[type=search] {
+	width: 100%;
+	font-size: 24px;
+}
+
+form textarea {
+	width: 100%;
+}
+
+form input[type=submit] {
+	width: 100%;
+} 
+
+#pdfbox {
+	background-color: #ccc;
+	border: 1px solid black;
+}
+
+/* http://webdesignerwall.com/tutorials/css3-gradient-buttons */
+/* button 
+---------------------------------------------- */
+.button {
+	display: inline-block;
+	zoom: 1; /* zoom and *display = ie7 hack for display:inline-block */
+	*display: inline;
+	vertical-align: baseline;
+	margin: 0 2px;
+	outline: none;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	font: 14px/100% Arial, Helvetica, sans-serif;
+	padding: .5em 2em .55em;
+	text-shadow: 0 1px 1px rgba(0,0,0,.3);
+	-webkit-border-radius: .5em; 
+	-moz-border-radius: .5em;
+	border-radius: .5em;
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.button:hover {
+	text-decoration: none;
+}
+.button:active {
+	position: relative;
+	top: 1px;
+}
+
+.bigrounded {
+	-webkit-border-radius: 2em;
+	-moz-border-radius: 2em;
+	border-radius: 2em;
+}
+.medium {
+	font-size: 12px;
+	padding: .4em 1.5em .42em;
+}
+.small {
+	font-size: 11px;
+	padding: .2em 1em .275em;
+}
+/* blue */
+.blue {
+	color: #d9eef7;
+	border: solid 1px #0076a3;
+	background: #0095cd;
+	background: -webkit-gradient(linear, left top, left bottom, from(#00adee), to(#0078a5));
+	background: -moz-linear-gradient(top,  #00adee,  #0078a5);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#00adee', endColorstr='#0078a5');
+}
+.blue:hover {
+	background: #007ead;
+	background: -webkit-gradient(linear, left top, left bottom, from(#0095cc), to(#00678e));
+	background: -moz-linear-gradient(top,  #0095cc,  #00678e);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#0095cc', endColorstr='#00678e');
+}
+.blue:active {
+	color: #80bed6;
+	background: -webkit-gradient(linear, left top, left bottom, from(#0078a5), to(#00adee));
+	background: -moz-linear-gradient(top,  #0078a5,  #00adee);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#0078a5', endColorstr='#00adee');
+}
+
+.results ul li { display: inline-block; border: 1px solid #ccc; margin: 2px; }
+.results ul li div { max-width: 650px; }

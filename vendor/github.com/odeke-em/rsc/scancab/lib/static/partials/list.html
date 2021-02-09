@@ -1,0 +1,17 @@
+<a href="#/incoming">incoming</a> 
+
+<a href="" ng-show="start > 0" ng-click="prev()">prev</a>
+<a href="" ng-show="more" ng-click="next()">next</a>
+<br>
+
+<div class="results">
+<ul>
+  <li ng-repeat="doc in docs">
+      <div>
+      <a href="#/doc/{{doc.ID}}">{{doc.Desc}} #{{doc.Tags}} ({{doc.Pages}} pages)
+      <br><img src="/scan/doc/{{doc.ID}}/thumb?dpi=72&page=1">
+      </a>
+      </div>
+  </li>
+</ul>
+</div>

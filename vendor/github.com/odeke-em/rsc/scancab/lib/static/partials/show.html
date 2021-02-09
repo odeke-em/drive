@@ -1,0 +1,34 @@
+<div id="container">
+
+<div id="center" class="docedit column">
+  <table>
+    <tr><td><label for=Tags>Tags:</label> <td>{{doc.Tags}}
+    <tr><td><label for=Desc>Description:</label> <td>{{doc.Desc}}
+    <tr><td><label for=Time>Time:</label> <td>{{doc.Time}}
+    <tr><td><label for=Due>Due:</label> <td>{{doc.Due}}
+    <tr><td><label for=Location>Location:</label> <td>{{doc.Location}}
+    <tr><td><label for=Text>Text:</label> <td>{{doc.Text}}
+  </table>
+  
+  <br><br>
+  <a href="#/doc/{{doc.ID}}/edit" class="button blue">Edit</a>
+</div>
+
+<div id="left" class="docinfo column">
+<p>#{{doc.ID}}
+<p>scanned {{doc.Created}}
+<p>{{doc.Pages}} pages
+<p>{{doc.Size}} bytes
+<p ng-show="incoming"><b>{{incoming_count}} incoming</b></p>
+</div>
+
+</div>
+
+<div id="pdfbox">
+<a href="" ng-click="showpdf()" ng-show="!showingpdf"><img src="/scan/doc/{{doc.ID}}/thumb?dpi=72&page=1"></a>
+<button ng-show="showingpdf" ng-click="hidepdf()">Hide PDF</button>
+<div ng-show="pdferror">Error loading PDF.</div>
+<div id="pdftop">
+<div ng-show="showingpdf" style="height: 100%;" id="pdf"></div>
+</div>
+</div>
