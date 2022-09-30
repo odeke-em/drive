@@ -109,6 +109,15 @@ sudo apt-get install drive-google
 You may need to install Comodo RSA Domain Validation Secure Server Certificate Authority used by Gitlab. Cf. the [PPA](https://gitlab.com/jean-christophe-manciot/ppa) for details.
 
 ---
+### Snap
+
+Snaps are app packages for desktop, cloud and IoT that are easy to install, secure, cross‐platform and dependency‐free. Snaps are discoverable and installable from the Snap Store, the app store for Linux with an audience of millions. 
+
+```
+sudo snap install drive
+```
+
+---
 ### Packages Provided By
 
 Platform | Author |
