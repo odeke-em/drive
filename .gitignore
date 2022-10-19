@@ -1,4 +1,5 @@
 bin/
+.idea/
 md5Sums.txt
 .DS_Store
 *.sw[op]

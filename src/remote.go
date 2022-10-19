@@ -17,12 +17,15 @@ package drive
 import (
 	"fmt"
 	"io"
-	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
+
+	crand "crypto/rand"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -39,14 +42,8 @@ import (
 )
 
 const (
-	// OAuth 2.0 OOB redirect URL for authorization.
-	RedirectURL = "urn:ietf:wg:oauth:2.0:oob"
-
 	// OAuth 2.0 full Drive scope used for authorization.
 	DriveScope = "https://www.googleapis.com/auth/drive"
-
-	// OAuth 2.0 access type for offline/refresh access.
-	AccessType = "offline"
 
 	// Google Drive webpage host
 	DriveResourceHostURL = "https://googledrive.com/host/"
@@ -181,14 +178,207 @@ func (r *Remote) change(changeId string) (*drive.Change, error) {
 	return r.service.Changes.Get(changeId).Do()
 }
 
+type loopbackServer struct {
+	// Authorization codes come here
+	codeChan <-chan string
+	// Errors while serving the callback endpoint
+	serveErrChan <-chan error
+	// Errors on the listener, including shutdown errors.
+	listenerErrChan <-chan error
+	// Signals that the handler is done.
+	done <-chan struct{}
+	// Invoke this to begin server shutdown.
+	stop func()
+	// The server listens on this endpoint.
+	redirectURL string
+	// Auth URL including CSRF token.
+	authURL string
+}
+
+func startTokenServer(config *oauth2.Config) (*loopbackServer, error) {
+	var buf [16]uint8
+	if _, err := io.ReadFull(crand.Reader, buf[:]); err != nil {
+		return nil, fmt.Errorf("could not generate random request token: %v", err)
+	}
+	randState := fmt.Sprintf("%x", buf)
+	// We explicitly listen on the loopback device to prevent external access.
+	// TODO: Can we portably use localhost:0?
+	listenHost := "127.0.0.1"
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:0", listenHost))
+	if err != nil {
+		return nil, err
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+	redirectURL := fmt.Sprintf("http://%s:%d/", listenHost, port)
+	// TODO: Consider if we can set/return the redirect URL in a more principled way.
+	config.RedirectURL = redirectURL
+	codeChan := make(chan string)
+	serveErrChan := make(chan error)
+	listenerErrChan := make(chan error)
+
+	// NOTE: This could equally well be done with context cancellation.
+	// However, current guidance is to _not_ store contexts (and, presumably,
+	// their cancel functions) beyond individual requests (and we really only
+	// need simple cancellation/completion signaling anyway). Instead, we use a
+	// sync.Once to ensure that the done channel is only closed once.
+	done, cancel := func() (<-chan struct{}, func()) {
+		done := make(chan struct{})
+		var once sync.Once
+		cancel := func() {
+			once.Do(func() {
+				close(done)
+			})
+		}
+		return done, cancel
+	}()
+
+	handleConnection := func(w http.ResponseWriter, r *http.Request) {
+		alreadyDoneMessage := "Already done. Return to the drive app.\n"
+		if r.URL.Path != "/" {
+			// Ignore requests at unexpected paths, e.g. /favicon.ico.
+			http.NotFound(w, r)
+			return
+		}
+		select {
+		case <-done:
+			_, _ = w.Write([]byte(alreadyDoneMessage))
+			return
+		default:
+		}
+
+		// All channel writes happen in select blocks because they might race
+		// with the done check above.
+		requestState := r.FormValue("state")
+		if requestState != randState {
+			select {
+			case serveErrChan <- fmt.Errorf("invalid CSRF token; rerun drive init"):
+				_, _ = w.Write([]byte("Error: invalid CSRF token."))
+			case <-done:
+				_, _ = w.Write([]byte(alreadyDoneMessage))
+			}
+			return
+		}
+		code := r.FormValue("code")
+		if code == "" {
+			select {
+			case serveErrChan <- fmt.Errorf("received empty request code; rerun drive init"):
+				_, _ = w.Write([]byte("Error: received empty code."))
+			case <-done:
+				_, _ = w.Write([]byte(alreadyDoneMessage))
+			}
+			return
+		}
+
+		select {
+		case codeChan <- code:
+			_, _ = w.Write([]byte("Code received. Return to the drive app."))
+		case <-done:
+			_, _ = w.Write([]byte(alreadyDoneMessage))
+		}
+	}
+
+	server := http.Server{
+		Handler: http.HandlerFunc(handleConnection),
+	}
+
+	// We use sync.Once here because we need to potentially call close on the
+	// listener error channel in 2 places.
+	var closeListenerErrChanOnce sync.Once
+	closeListenerErrChan := func(err error) {
+		closeListenerErrChanOnce.Do(func() {
+			listenerErrChan <- err
+			close(listenerErrChan)
+		})
+	}
+	go func() {
+		// Server closer.
+		<-done
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err := server.Shutdown(ctx)
+		if err != nil {
+			// Usually, we close the error channel below on server exit.
+			// However, if the Shutdown call hangs and we time out, we want to
+			// release the main goroutine. To handle the scenario where Shutdown
+			// times out but the underlying server somehow returns, we guard
+			// this in a sync.Once. In manual testing, I wasn't able to elicit
+			// any hangs or errors in the Shutdown call itself, even by
+			// wrapping the net.Listener in another listener that always returns
+			// an error from Close.
+			closeListenerErrChan(err)
+		}
+	}()
+	go func() {
+		// Listener.
+		err := server.Serve(listener)
+		if err == http.ErrServerClosed {
+			err = nil
+		} else if err != nil {
+			// Defensively check for non-nil errors. It's unclear if Serve() can ever
+			// exit with a nil error.
+			err = fmt.Errorf("server closed unexpectedly: %v", err)
+		}
+		closeListenerErrChan(err)
+	}()
+	authURL := config.AuthCodeURL(randState, oauth2.AccessTypeOffline)
+	return &loopbackServer{
+		codeChan:        codeChan,
+		serveErrChan:    serveErrChan,
+		listenerErrChan: listenerErrChan,
+		done:            done,
+		stop:            cancel,
+		authURL:         authURL,
+		redirectURL:     redirectURL,
+	}, nil
+}
+
+func (s *loopbackServer) RedirectURL() string {
+	return s.redirectURL
+}
+
+func (s *loopbackServer) AuthURL() string {
+	return s.authURL
+}
+
+func (s *loopbackServer) GetCode() (string, error) {
+	select {
+	case err := <-s.serveErrChan:
+		return "", err
+	case code := <-s.codeChan:
+		return code, nil
+	case <-s.done:
+		return "", fmt.Errorf("server already closed")
+	}
+}
+
+func (s *loopbackServer) Close() error {
+	s.stop()
+	return <-s.listenerErrChan
+}
+
+func getCodeViaLoopback(config *oauth2.Config) (string, error) {
+	server, err := startTokenServer(config)
+	if err != nil {
+		return "", err
+	}
+	config.RedirectURL = server.RedirectURL()
+	fmt.Printf("Visit this URL to get an authorization code\n%s\n", server.AuthURL())
+	code, err := server.GetCode()
+	closeErr := server.Close()
+	if closeErr != nil {
+		// We already have either a code or root error, so no need to surface this.
+		fmt.Printf("warning: error closing loopback server: %v\n", closeErr)
+	}
+	return code, err
+}
+
 func RetrieveRefreshToken(ctx context.Context, context *config.Context) (string, error) {
 	config := newAuthConfig(context)
 
-	randState := fmt.Sprintf("%s%v", time.Now(), rand.Uint32())
-	url := config.AuthCodeURL(randState, oauth2.AccessTypeOffline)
-
-	fmt.Printf("Visit this URL to get an authorization code\n%s\n", url)
-	code := prompt(os.Stdin, os.Stdout, "Paste the authorization code: ")
+	code, err := getCodeViaLoopback(config)
+	if err != nil {
+		return "", err
+	}
 
 	token, err := config.Exchange(ctx, code)
 	if err != nil {
@@ -1207,7 +1397,6 @@ func newAuthConfig(context *config.Context) *oauth2.Config {
 	return &oauth2.Config{
 		ClientID:     context.ClientId,
 		ClientSecret: context.ClientSecret,
-		RedirectURL:  RedirectURL,
 		Endpoint:     google.Endpoint,
 		Scopes:       []string{DriveScope},
 	}

@@ -29,5 +29,6 @@ require (
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
 	golang.org/x/net v0.0.0-20201216054612-986b41b23924
 	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5
+	golang.org/x/sys v0.0.0-20221006211917-84dc82d7e875 // indirect
 	google.golang.org/api v0.36.0
 )
