@@ -26,7 +26,7 @@ import (
 
 	"golang.org/x/oauth2/jwt"
 
-	"github.com/boltdb/bolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 var (
