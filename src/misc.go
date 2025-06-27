@@ -575,6 +575,7 @@ var regExtStrMap = map[string]string{
 	"xlsx?":  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 
 	"ipynb": "application/vnd.google.colaboratory",
+	"md": "text/markdown",
 }
 
 func regMapper(srcMaps ...map[string]string) map[*regexp.Regexp]string {
