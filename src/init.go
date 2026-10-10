@@ -15,6 +15,7 @@
 package drive
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -22,12 +23,23 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// Deprecated: Google blocks the authorization with drive's built-in API keys,
+// so they are no longer used: `drive init` requires the user's own API keys.
+// They are only kept for reference.
+const (
+	deprecatedBuiltinClientId     = "354790962074-7rrlnuanmamgg1i4feed12dpuq871bvd.apps.googleusercontent.com"
+	deprecatedBuiltinClientSecret = "RHjKdah8RrHFwu6fcc0uEVCw"
+)
+
+var ErrNoAPIKeys = invalidArgumentsErr(fmt.Errorf("your own API keys have to be set in the environment variables %s and %s,\n"+
+	"drive's built-in ones are deprecated since Google blocks them. See https://github.com/theist/drive#api-keys",
+	GoogleApiClientIdEnvKey, GoogleApiClientSecretEnvKey))
+
 func (g *Commands) Init() error {
 	g.context.ClientId = os.Getenv(GoogleApiClientIdEnvKey)
 	g.context.ClientSecret = os.Getenv(GoogleApiClientSecretEnvKey)
 	if g.context.ClientId == "" || g.context.ClientSecret == "" {
-		g.context.ClientId = "354790962074-7rrlnuanmamgg1i4feed12dpuq871bvd.apps.googleusercontent.com"
-		g.context.ClientSecret = "RHjKdah8RrHFwu6fcc0uEVCw"
+		return ErrNoAPIKeys
 	}
 
 	ctx := context.Background()

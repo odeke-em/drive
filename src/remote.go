@@ -17,7 +17,6 @@ package drive
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,9 +38,6 @@ import (
 )
 
 const (
-	// OAuth 2.0 OOB redirect URL for authorization.
-	RedirectURL = "urn:ietf:wg:oauth:2.0:oob"
-
 	// OAuth 2.0 full Drive scope used for authorization.
 	DriveScope = "https://www.googleapis.com/auth/drive"
 
@@ -182,19 +178,7 @@ func (r *Remote) change(changeId string) (*drive.Change, error) {
 }
 
 func RetrieveRefreshToken(ctx context.Context, context *config.Context) (string, error) {
-	config := newAuthConfig(context)
-
-	randState := fmt.Sprintf("%s%v", time.Now(), rand.Uint32())
-	url := config.AuthCodeURL(randState, oauth2.AccessTypeOffline)
-
-	fmt.Printf("Visit this URL to get an authorization code\n%s\n", url)
-	code := prompt(os.Stdin, os.Stdout, "Paste the authorization code: ")
-
-	token, err := config.Exchange(ctx, code)
-	if err != nil {
-		return "", err
-	}
-	return token.RefreshToken, nil
+	return retrieveRefreshToken(ctx, newAuthConfig(context), os.Stdin, os.Stdout)
 }
 
 func (r *Remote) FindBackPaths(id string) (backPaths []string, err error) {
@@ -1207,7 +1191,6 @@ func newAuthConfig(context *config.Context) *oauth2.Config {
 	return &oauth2.Config{
 		ClientID:     context.ClientId,
 		ClientSecret: context.ClientSecret,
-		RedirectURL:  RedirectURL,
 		Endpoint:     google.Endpoint,
 		Scopes:       []string{DriveScope},
 	}

@@ -161,7 +161,45 @@ Also inspect file `bin/md5Sums.txt` after the cross compilation.
 
 ### API keys
 
-Optionally set the `GOOGLE_API_CLIENT_ID` and `GOOGLE_API_CLIENT_SECRET` environment variables to use your own API keys.
+`drive init` needs your own API keys, set in the `GOOGLE_API_CLIENT_ID` and `GOOGLE_API_CLIENT_SECRET` environment variables.
+They get saved along with the rest of the credentials of the drive being initialized, so they only have to be set for `drive init`.
+
+#### Why the built-in API keys no longer work
+
+drive used to work out of the box with the API keys that are built into it. That is no longer possible:
+with them, Google refuses the authorization with the page
+"This app is blocked: This app tried to access sensitive info in your Google Account".
+
+drive asks for full access to your Google Drive, which Google classifies as a restricted scope. For an app to be
+allowed to request it from the general public, the owner of its API keys has to pass Google's OAuth verification,
+which for restricted scopes involves, among other requirements, a recurring security assessment by a third party.
+The built-in API keys belong to a Google Cloud project of the original author, who made drive for the love of
+the tool, and that project hasn't gone through that verification. drive is nowadays being fixed by someone else,
+also for the love of the tool, and without the means that such a verification demands: there is no plan
+to go through it with new API keys.
+
+The built-in API keys are therefore deprecated and `drive init` fails unless your own API keys are set.
+
+API keys that you create yourself, to access your own Google Drive, don't need that verification.
+
+#### Creating your own API keys
+
+1. Create a project in the [Google Cloud console](https://console.cloud.google.com/).
+2. Enable the [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com) for that project.
+3. Configure the project's OAuth consent screen: pick the "External" user type, unless every user belongs
+to your Google Workspace organization, and add the Google accounts that will use drive as test users.
+4. Create an OAuth client ID of application type "Desktop app", which is the type that Google lets redirect to
+the loopback address that `drive init` listens on, [see authorizing](#authorizing).
+5. Initialize your drive with the client ID and the client secret that you are given:
+
+```shell
+GOOGLE_API_CLIENT_ID=<client_id> GOOGLE_API_CLIENT_SECRET=<client_secret> drive init ~/gdrive
+```
+
+While the consent screen's publishing status is "Testing", Google expires the authorization after 7 days
+and `drive init` has to be run again. To avoid that, publish the app i.e. set its status to "In production":
+it doesn't have to go through Google's verification for your own use, authorizing then just shows a
+"Google hasn't verified this app" warning that you can proceed past.
 
 ## Usage
 
@@ -178,6 +216,23 @@ Before you can use `drive`, you'll need to mount your Google Drive directory on 
 drive init ~/gdrive
 cd ~/gdrive
 ```
+
+##### Authorizing
+
+`drive init` prints a URL to visit in order to grant drive access to your Google Drive.
+Once you approve, Google redirects your browser to a port on the loopback address `http://127.0.0.1:<port>`
+that `drive init` is listening on for that occasion, and the initialization then completes by itself.
+
+If the browser runs on another machine than drive, for example when drive is on a server that you
+are logged into by SSH, the browser can't reach that address and fails to load the page after
+you approve. That is expected: copy the URL of that failed page, which looks like
+`http://127.0.0.1:<port>/?state=...&code=...`, from the browser's address bar and paste it into the
+prompt of `drive init`.
+
+This replaces the copying and pasting of an authorization code, the "out-of-band" flow, which Google
+[has blocked](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) with the error
+"The out-of-band (OOB) flow has been blocked in order to keep users secure". Drives that are
+already initialized keep on working without having to be initialized again.
 
 #### Google Service Account credentials
 ```shell
